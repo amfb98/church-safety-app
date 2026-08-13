@@ -483,6 +483,11 @@ def user_delete(user_id):
     return redirect(url_for('users'))
 with app.app_context():
     db.create_all()
+    if not User.query.filter_by(username='admin').first():
+        admin = User(username='admin', full_name='System Admin', role='admin')
+        admin.set_password('admin123')
+        db.session.add(admin)
+        db.session.commit()
 # Init DB and create default admin
 def init_db():
     with app.app_context():
