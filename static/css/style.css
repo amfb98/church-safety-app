@@ -1,0 +1,65 @@
+body {
+    background-color: #f5f6fa;
+    min-height: 100vh;
+}
+
+.navbar-brand {
+    font-weight: 600;
+}
+
+.classification-critical {
+    background-color: #dc3545 !important;
+    color: white;
+}
+.classification-high {
+    background-color: #fd7e14 !important;
+    color: white;
+}
+.classification-medium {
+    background-color: #ffc107 !important;
+    color: #212529;
+}
+.classification-low {
+    background-color: #198754 !important;
+    color: white;
+}
+
+.poi-card {
+    transition: box-shadow 0.15s;
+}
+.poi-card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+}
+
+.calendar-table th, .calendar-table td {
+    width: 14.28%;
+    padding: 0.4rem;
+}
+.calendar-day.empty {
+    background-color: #f0f0f0;
+}
+.calendar-day.today {
+    background-color: #e7f1ff;
+}
+.event-pill {
+    background: #0d6efd;
+    color: white;
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-size: 0.75rem;
+    margin-top: 2px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.event-pill a {
+    color: white;
+    text-decoration: none;
+}
+.event-pill a:hover {
+    text-decoration: underline;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}

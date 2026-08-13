@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ msg.title }}{% endblock %}
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('messages') }}" class="btn btn-sm btn-outline-secondary">&laquo; Back</a>
+</div>
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            {% if msg.is_pinned %}<i class="bi bi-pin-angle-fill text-warning"></i> {% endif %}
+            <strong>{{ msg.title }}</strong>
+        </div>
+        <div>
+            {% if current_user.role == 'admin' or current_user.id == msg.author_id %}
+            <form method="POST" action="{{ url_for('message_delete', msg_id=msg.id) }}" class="d-inline" onsubmit="return confirm('Delete this post and all replies?');">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        <p class="card-text" style="white-space: pre-wrap;">{{ msg.content }}</p>
+        <small class="text-muted">Posted by {{ msg.author.full_name }} on {{ msg.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+    </div>
+</div>
+
+<h5 class="mb-3">Replies ({{ msg.replies|length }})</h5>
+{% for r in msg.replies %}
+<div class="card mb-2">
+    <div class="card-body py-2">
+        <p class="mb-1" style="white-space: pre-wrap;">{{ r.content }}</p>
+        <small class="text-muted">{{ r.author.full_name }} · {{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+    </div>
+</div>
+{% else %}
+<p class="text-muted">No replies yet.</p>
+{% endfor %}
+
+<form method="POST" action="{{ url_for('message_reply', msg_id=msg.id) }}" class="card card-body mt-4">
+    <label class="form-label">Add a reply</label>
+    <textarea name="content" class="form-control mb-2" rows="3" required></textarea>
+    <button type="submit" class="btn btn-primary btn-sm">Reply</button>
+</form>
+{% endblock %}

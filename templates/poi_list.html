@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Persons of Interest{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-person-badge"></i> Persons of Interest</h2>
+    <a href="{{ url_for('poi_add') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add POI</a>
+</div>
+
+<form class="row g-2 mb-4" method="GET">
+    <div class="col-md-5">
+        <input type="text" name="q" class="form-control" placeholder="Search name, alias, description..." value="{{ q }}">
+    </div>
+    <div class="col-md-3">
+        <select name="classification" class="form-select">
+            <option value="">All classifications</option>
+            <option value="critical" {% if classification=='critical' %}selected{% endif %}>Critical</option>
+            <option value="high" {% if classification=='high' %}selected{% endif %}>High</option>
+            <option value="medium" {% if classification=='medium' %}selected{% endif %}>Medium</option>
+            <option value="low" {% if classification=='low' %}selected{% endif %}>Low</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-outline-secondary w-100"><i class="bi bi-search"></i> Filter</button>
+    </div>
+    <div class="col-md-2">
+        <a href="{{ url_for('poi_list') }}" class="btn btn-outline-secondary w-100">Clear</a>
+    </div>
+</form>
+
+<div class="row g-3">
+{% for p in pois %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 poi-card">
+            <div class="card-body d-flex">
+                {% if p.photo_filename %}
+                <img src="{{ url_for('static', filename='uploads/' + p.photo_filename) }}" class="rounded me-3" style="width:80px;height:80px;object-fit:cover;">
+                {% else %}
+                <div class="bg-secondary rounded me-3 d-flex align-items-center justify-content-center" style="width:80px;height:80px;"><i class="bi bi-person text-white fs-3"></i></div>
+                {% endif %}
+                <div class="flex-grow-1">
+                    <h5 class="card-title mb-1">
+                        <a href="{{ url_for('poi_detail', poi_id=p.id) }}" class="text-decoration-none">{{ p.name }}</a>
+                    </h5>
+                    {% if p.aliases %}<small class="text-muted d-block">aka {{ p.aliases }}</small>{% endif %}
+                    <span class="badge classification-{{ p.classification }}">{{ p.classification|upper }}</span>
+                    {% if p.last_seen %}<br><small class="text-muted">Last seen: {{ p.last_seen.strftime('%Y-%m-%d') }}</small>{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="col-12">
+        <div class="alert alert-info">No persons of interest found.</div>
+    </div>
+{% endfor %}
+</div>
+{% endblock %}

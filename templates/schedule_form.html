@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if event else 'Add' }} Schedule Event{% endblock %}
+{% block content %}
+<h2 class="mb-4">{{ 'Edit' if event else 'Add' }} Schedule Event</h2>
+<form method="POST" class="card card-body shadow-sm">
+    <div class="row g-3">
+        <div class="col-md-8">
+            <label class="form-label">Title *</label>
+            <input type="text" name="title" class="form-control" required value="{{ event.title if event else '' }}">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Date *</label>
+            <input type="date" name="event_date" class="form-control" required value="{{ event.event_date.isoformat() if event else default_date }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Start Time</label>
+            <input type="time" name="start_time" class="form-control" value="{{ event.start_time if event else '' }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">End Time</label>
+            <input type="time" name="end_time" class="form-control" value="{{ event.end_time if event else '' }}">
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Location</label>
+            <input type="text" name="location" class="form-control" value="{{ event.location if event else '' }}">
+        </div>
+        <div class="col-12">
+            <label class="form-label">Assigned To</label>
+            <input type="text" name="assigned_to" class="form-control" value="{{ event.assigned_to if event else '' }}" placeholder="Names or usernames, comma separated">
+        </div>
+        <div class="col-12">
+            <label class="form-label">Description / Notes</label>
+            <textarea name="description" class="form-control" rows="3">{{ event.description if event else '' }}</textarea>
+        </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{{ url_for('schedule') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+{% if event %}
+<form method="POST" action="{{ url_for('schedule_delete', event_id=event.id) }}" onsubmit="return confirm('Delete this event?');" class="mt-2">
+    <button type="submit" class="btn btn-outline-danger">Delete Event</button>
+</form>
+{% endif %}
+{% endblock %}

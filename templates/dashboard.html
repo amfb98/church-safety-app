@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Church Safety{% endblock %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-calendar-event"></i> Upcoming Schedule
+            </div>
+            <div class="card-body">
+                {% if upcoming %}
+                    <ul class="list-group list-group-flush">
+                    {% for e in upcoming %}
+                        <li class="list-group-item px-0">
+                            <strong>{{ e.event_date.strftime('%b %d') }}</strong>
+                            {% if e.start_time %} {{ e.start_time }}{% endif %}
+                            <br>{{ e.title }}
+                            {% if e.assigned_to %}<br><small class="text-muted">{{ e.assigned_to }}</small>{% endif %}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">No upcoming events</p>
+                {% endif %}
+                <a href="{{ url_for('schedule') }}" class="btn btn-sm btn-outline-primary mt-3">View Calendar</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header bg-danger text-white">
+                <i class="bi bi-exclamation-triangle"></i> High Priority POIs
+            </div>
+            <div class="card-body">
+                {% if high_pois %}
+                    <ul class="list-group list-group-flush">
+                    {% for p in high_pois %}
+                        <li class="list-group-item px-0 d-flex align-items-center">
+                            {% if p.photo_filename %}
+                            <img src="{{ url_for('static', filename='uploads/' + p.photo_filename) }}" class="rounded me-2" style="width:40px;height:40px;object-fit:cover;">
+                            {% else %}
+                            <div class="bg-secondary rounded me-2 d-flex align-items-center justify-content-center" style="width:40px;height:40px;"><i class="bi bi-person text-white"></i></div>
+                            {% endif %}
+                            <div>
+                                <a href="{{ url_for('poi_detail', poi_id=p.id) }}">{{ p.name }}</a>
+                                <span class="badge bg-{{ 'danger' if p.classification == 'critical' else 'warning' }}">{{ p.classification }}</span>
+                            </div>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">None</p>
+                {% endif %}
+                <a href="{{ url_for('poi_list') }}" class="btn btn-sm btn-outline-danger mt-3">View All POIs</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-chat-left-text"></i> Recent Messages
+            </div>
+            <div class="card-body">
+                {% if recent_msgs %}
+                    <ul class="list-group list-group-flush">
+                    {% for m in recent_msgs %}
+                        <li class="list-group-item px-0">
+                            {% if m.is_pinned %}<i class="bi bi-pin-angle-fill text-warning"></i> {% endif %}
+                            <a href="{{ url_for('message_detail', msg_id=m.id) }}">{{ m.title }}</a>
+                            <br><small class="text-muted">{{ m.author.full_name }} · {{ m.created_at.strftime('%b %d') }}</small>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">No messages yet</p>
+                {% endif %}
+                <a href="{{ url_for('messages') }}" class="btn btn-sm btn-outline-success mt-3">Message Board</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
