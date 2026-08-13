@@ -480,7 +480,8 @@ def user_delete(user_id):
     db.session.commit()
     flash('User deleted', 'success')
     return redirect(url_for('users'))
-
+with app.app_context():
+    db.create_all()
 # Init DB and create default admin
 def init_db():
     with app.app_context():
