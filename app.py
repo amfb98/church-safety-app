@@ -10,7 +10,7 @@ from PIL import Image
 import uuid
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'K9#mP2$vL8@qR5!xN3&wJ7*tY4^bH6'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback-key-change-me')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///church_safety.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
