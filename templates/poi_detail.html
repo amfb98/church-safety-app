@@ -36,6 +36,16 @@
             <div class="card-header">Internal Notes</div>
             <div class="card-body">{{ poi.notes or '—' }}</div>
         </div>
+        {% if poi.license_plate or poi.vehicle_color or poi.vehicle_make_model %}
+<div class="card mb-3">
+    <div class="card-header">Vehicle Information</div>
+    <div class="card-body">
+        {% if poi.license_plate %}<p class="mb-1"><strong>License Plate:</strong> {{ poi.license_plate }}</p>{% endif %}
+        {% if poi.vehicle_color %}<p class="mb-1"><strong>Color:</strong> {{ poi.vehicle_color }}</p>{% endif %}
+        {% if poi.vehicle_make_model %}<p class="mb-1"><strong>Make & Model:</strong> {{ poi.vehicle_make_model }}</p>{% endif %}
+    </div>
+</div>
+{% endif %}
         <dl class="row">
             <dt class="col-sm-3">Last Seen</dt>
             <dd class="col-sm-9">{{ poi.last_seen.strftime('%Y-%m-%d') if poi.last_seen else '—' }}</dd>
