@@ -150,3 +150,34 @@ h1, h2, h3, h4, h5, h6 {
     background: #a4d233;
     color: #000;
 }
+/* Calendar fixes */
+.calendar-table, .calendar-table th, .calendar-table td,
+table, th, td {
+    color: #ffffff !important;
+    background-color: #1a1a1a !important;
+    border-color: #333 !important;
+}
+
+.calendar-table th {
+    background-color: #000000 !important;
+    color: #a4d233 !important;
+}
+
+/* Message Board fixes */
+.message-card, .message-item, .post, .card-body p, 
+.list-group-item, .text-muted {
+    color: #e0e0e0 !important;
+}
+
+.text-muted {
+    color: #aaaaaa !important;
+}
+
+/* General text fixes */
+.page-title, h1, h2, h3, h4, h5 {
+    color: #ffffff !important;
+}
+
+small, .small {
+    color: #bbbbbb !important;
+}
