@@ -23,8 +23,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
-with app.app_context():
-    db.create_all()
+
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 # Models
@@ -63,9 +62,9 @@ class ScheduleEvent(db.Model):
     title = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text, default='')
     event_date = db.Column(db.Date, nullable=False)
-    start_time = db.Column(db.String(10), default='')  # HH:MM
+    start_time = db.Column(db.String(10), default='')
     end_time = db.Column(db.String(10), default='')
-    assigned_to = db.Column(db.String(256), default='')  # comma-separated usernames or names
+    assigned_to = db.Column(db.String(256), default='')
     location = db.Column(db.String(120), default='')
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -100,7 +99,6 @@ def save_photo(file):
         ext = file.filename.rsplit('.', 1)[1].lower()
         filename = f"{uuid.uuid4().hex}.{ext}"
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        # Resize for storage efficiency
         img = Image.open(file.stream)
         img.thumbnail((800, 800))
         if img.mode in ('RGBA', 'P'):
@@ -141,12 +139,9 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Upcoming events
     today = date.today()
     upcoming = ScheduleEvent.query.filter(ScheduleEvent.event_date >= today).order_by(ScheduleEvent.event_date).limit(5).all()
-    # High priority POIs
     high_pois = PersonOfInterest.query.filter(PersonOfInterest.classification.in_(['high', 'critical'])).order_by(PersonOfInterest.updated_at.desc()).limit(5).all()
-    # Recent messages
     recent_msgs = Message.query.order_by(Message.is_pinned.desc(), Message.created_at.desc()).limit(5).all()
     return render_template('dashboard.html', upcoming=upcoming, high_pois=high_pois, recent_msgs=recent_msgs)
 
@@ -164,7 +159,10 @@ def poi_list():
                 PersonOfInterest.name.ilike(like),
                 PersonOfInterest.aliases.ilike(like),
                 PersonOfInterest.description.ilike(like),
-                PersonOfInterest.notes.ilike(like)
+                PersonOfInterest.notes.ilike(like),
+                PersonOfInterest.license_plate.ilike(like),
+                PersonOfInterest.vehicle_make_model.ilike(like),
+                PersonOfInterest.vehicle_color.ilike(like)
             )
         )
     if classification:
@@ -207,6 +205,9 @@ def poi_add():
             classification=request.form.get('classification', 'low'),
             photo_filename=photo_filename,
             notes=request.form.get('notes', '').strip(),
+            license_plate=request.form.get('license_plate', '').strip(),
+            vehicle_color=request.form.get('vehicle_color', '').strip(),
+            vehicle_make_model=request.form.get('vehicle_make_model', '').strip(),
             last_seen=last_seen,
             created_by=current_user.id
         )
@@ -232,6 +233,9 @@ def poi_edit(poi_id):
         poi.description = request.form.get('description', '').strip()
         poi.classification = request.form.get('classification', 'low')
         poi.notes = request.form.get('notes', '').strip()
+        poi.license_plate = request.form.get('license_plate', '').strip()
+        poi.vehicle_color = request.form.get('vehicle_color', '').strip()
+        poi.vehicle_make_model = request.form.get('vehicle_make_model', '').strip()
         ls = request.form.get('last_seen', '')
         if ls:
             try:
@@ -245,7 +249,6 @@ def poi_edit(poi_id):
             if file.filename:
                 new_photo = save_photo(file)
                 if new_photo:
-                    # optionally delete old
                     if poi.photo_filename:
                         old_path = os.path.join(app.config['UPLOAD_FOLDER'], poi.photo_filename)
                         if os.path.exists(old_path):
@@ -285,7 +288,6 @@ def poi_delete(poi_id):
 def schedule():
     year = request.args.get('year', type=int) or date.today().year
     month = request.args.get('month', type=int) or date.today().month
-    # Clamp
     if month < 1:
         month = 12
         year -= 1
@@ -293,7 +295,6 @@ def schedule():
         month = 1
         year += 1
     first = date(year, month, 1)
-    # Get events for the month
     if month == 12:
         next_month = date(year + 1, 1, 1)
     else:
@@ -302,9 +303,8 @@ def schedule():
         ScheduleEvent.event_date >= first,
         ScheduleEvent.event_date < next_month
     ).order_by(ScheduleEvent.event_date, ScheduleEvent.start_time).all()
-    # Build calendar grid
     import calendar
-    cal = calendar.Calendar(firstweekday=6)  # Sunday start
+    cal = calendar.Calendar(firstweekday=6)
     weeks = cal.monthdayscalendar(year, month)
     events_by_day = {}
     for e in events:
@@ -484,6 +484,7 @@ def user_delete(user_id):
     db.session.commit()
     flash('User deleted', 'success')
     return redirect(url_for('users'))
+
 with app.app_context():
     db.create_all()
     if not User.query.filter_by(username='admin').first():
@@ -491,13 +492,13 @@ with app.app_context():
         admin.set_password('admin123')
         db.session.add(admin)
         db.session.commit()
-# Init DB and create default admin
+
 def init_db():
     with app.app_context():
         db.create_all()
         if not User.query.filter_by(username='admin').first():
             admin = User(username='admin', full_name='System Admin', role='admin')
-            admin.set_password('admin123')  # CHANGE THIS!
+            admin.set_password('admin123')
             db.session.add(admin)
             db.session.commit()
             print("Created default admin / admin123")
