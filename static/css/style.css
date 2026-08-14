@@ -265,3 +265,12 @@ textarea {
     color: #bbbbbb !important;
     opacity: 1 !important;
 }
+/* Force black text on EVERYTHING inside green calendar bars */
+.event-pill *,
+.calendar-event *,
+[class*="event"] *,
+td div *,
+td a *,
+td span * {
+    color: #000000 !important;
+}
