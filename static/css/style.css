@@ -181,3 +181,39 @@ table, th, td {
 small, .small {
     color: #bbbbbb !important;
 }
+/* Green event bars on calendar - black text */
+.event-pill, 
+.calendar-event,
+[style*="background"] {
+    color: #000000 !important;
+}
+
+/* Classification badges - stronger contrast */
+.classification-critical, .badge-critical {
+    background-color: #e74c3c !important;
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+.classification-high, .badge-high {
+    background-color: #f39c12 !important;
+    color: #000000 !important;
+    font-weight: 700;
+}
+
+.classification-medium, .badge-medium {
+    background-color: #f1c40f !important;
+    color: #000000 !important;
+    font-weight: 700;
+}
+
+.classification-low, .badge-low {
+    background-color: #2ecc71 !important;
+    color: #000000 !important;
+    font-weight: 700;
+}
+
+/* Make sure any green pill/button text is black */
+.bg-success, .btn-success, .event-pill {
+    color: #000000 !important;
+}
