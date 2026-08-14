@@ -26,9 +26,10 @@
     {% if current_user.is_authenticated %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
-                <i class="bi bi-shield-check"></i> Church Safety
-            </a>
+           <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
+    <img src="{{ url_for('static', filename='icon-192.png') }}" alt="CNAZ" style="height: 34px; width: 34px; border-radius: 6px; margin-right: 10px;">
+    CNAZ Safety
+</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
                 <span class="navbar-toggler-icon"></span>
             </button>
