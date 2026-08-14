@@ -217,3 +217,14 @@ small, .small {
 .bg-success, .btn-success, .event-pill {
     color: #000000 !important;
 }
+/* Force black text on green calendar events */
+.event-pill,
+.calendar-event,
+td .event,
+[class*="event"],
+div[style*="background-color: #a4d233"],
+div[style*="background: #a4d233"],
+.bg-success {
+    color: #000000 !important;
+    font-weight: 600;
+}
