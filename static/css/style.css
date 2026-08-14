@@ -7,26 +7,9 @@ body {
 .navbar {
     background-color: #000000 !important;
     border-bottom: 2px solid #a4d233;
-    padding-top: 0.4rem;
-    padding-bottom: 0.4rem;
 }
 
-.navbar-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #ffffff !important;
-    font-weight: 600;
-    font-size: 1.25rem;
-}
-
-.navbar-brand img {
-    height: 36px;
-    width: 36px;
-    border-radius: 6px;
-}
-
-.nav-link, .navbar-text {
+.navbar-brand, .nav-link, .navbar-text {
     color: #ffffff !important;
 }
 
@@ -39,18 +22,12 @@ body {
     border: 1px solid #333;
     color: #ffffff !important;
     border-radius: 12px !important;
-    overflow: hidden;
 }
 
 .card-header {
     background-color: #a4d233 !important;
     color: #000000 !important;
-    border-bottom: none;
     font-weight: 600;
-}
-
-.card-body {
-    color: #ffffff !important;
 }
 
 .list-group-item {
@@ -63,11 +40,6 @@ body {
     color: #a4d233 !important;
 }
 
-.btn {
-    border-radius: 8px;
-    transition: all 0.2s ease;
-}
-
 .btn-primary {
     background-color: #a4d233;
     border-color: #a4d233;
@@ -78,10 +50,10 @@ body {
     background-color: #8bc01e;
     border-color: #8bc01e;
     color: #000;
-    box-shadow: 0 0 12px rgba(164, 210, 51, 0.5);
+    box-shadow: 0 0 10px rgba(164, 210, 51, 0.4);
 }
 
-.btn-outline-primary, .btn-outline-secondary, .btn-outline-danger, .btn-outline-success {
+.btn-outline-primary, .btn-outline-secondary {
     color: #a4d233;
     border-color: #a4d233;
 }
@@ -89,46 +61,66 @@ body {
 .btn-outline-primary:hover, .btn-outline-secondary:hover {
     background-color: #a4d233;
     color: #000;
-    box-shadow: 0 0 12px rgba(164, 210, 51, 0.45);
 }
 
 a {
     color: #a4d233;
 }
 
-a:hover {
-    color: #c5e86c;
-}
-
 h1, h2, h3, h4, h5, h6 {
     color: #ffffff !important;
 }
 
-.dashboard-title {
-    color: #a4d233 !important;
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-}
-
 .form-control, .form-select {
-    background-color: #2a2a2a;
+    background-color: #2a2a2a !important;
     border-color: #444;
-    color: #ffffff;
-    border-radius: 8px;
+    color: #ffffff !important;
 }
 
 .form-control:focus, .form-select:focus {
-    background-color: #2a2a2a;
     border-color: #a4d233;
-    color: #ffffff;
     box-shadow: 0 0 0 0.2rem rgba(164, 210, 51, 0.25);
 }
 
-.table {
-    color: #ffffff;
+.form-control::placeholder {
+    color: #bbbbbb !important;
 }
 
+.form-label, label {
+    color: #ffffff !important;
+}
+
+/* Calendar */
+.calendar-table td,
+.calendar-table th,
+.calendar-day strong {
+    color: #ffffff !important;
+}
+
+.event-pill {
+    background-color: #a4d233 !important;
+    color: #000000 !important;
+    padding: 3px 6px;
+    border-radius: 4px;
+    margin: 2px 0;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.event-pill a,
+.event-pill small {
+    color: #000000 !important;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.calendar-day .text-muted {
+    color: #a4d233 !important;
+}
+
+/* Classification badges */
 .classification-critical {
     background-color: #e74c3c !important;
     color: white !important;
@@ -144,195 +136,4 @@ h1, h2, h3, h4, h5, h6 {
 .classification-low {
     background-color: #2ecc71 !important;
     color: #000 !important;
-}
-
-.event-pill {
-    background: #a4d233;
-    color: #000;
-}
-/* Calendar fixes */
-.calendar-table, .calendar-table th, .calendar-table td,
-table, th, td {
-    color: #ffffff !important;
-    background-color: #1a1a1a !important;
-    border-color: #333 !important;
-}
-
-.calendar-table th {
-    background-color: #000000 !important;
-    color: #a4d233 !important;
-}
-
-/* Message Board fixes */
-.message-card, .message-item, .post, .card-body p, 
-.list-group-item, .text-muted {
-    color: #e0e0e0 !important;
-}
-
-.text-muted {
-    color: #aaaaaa !important;
-}
-
-/* General text fixes */
-.page-title, h1, h2, h3, h4, h5 {
-    color: #ffffff !important;
-}
-
-small, .small {
-    color: #bbbbbb !important;
-}
-/* Green event bars on calendar - black text */
-.event-pill, 
-.calendar-event,
-[style*="background"] {
-    color: #000000 !important;
-}
-
-/* Classification badges - stronger contrast */
-.classification-critical, .badge-critical {
-    background-color: #e74c3c !important;
-    color: #ffffff !important;
-    font-weight: 700;
-}
-
-.classification-high, .badge-high {
-    background-color: #f39c12 !important;
-    color: #000000 !important;
-    font-weight: 700;
-}
-
-.classification-medium, .badge-medium {
-    background-color: #f1c40f !important;
-    color: #000000 !important;
-    font-weight: 700;
-}
-
-.classification-low, .badge-low {
-    background-color: #2ecc71 !important;
-    color: #000000 !important;
-    font-weight: 700;
-}
-
-/* Make sure any green pill/button text is black */
-.bg-success, .btn-success, .event-pill {
-    color: #000000 !important;
-}
-/* Force black text on green calendar events */
-.event-pill,
-.calendar-event,
-td .event,
-[class*="event"],
-div[style*="background-color: #a4d233"],
-div[style*="background: #a4d233"],
-.bg-success {
-    color: #000000 !important;
-    font-weight: 600;
-}
-/* ===== FINAL FIXES ===== */
-
-/* Force black text on green calendar events */
-.event-pill,
-.calendar-event,
-.event,
-[class*="event"],
-td > div,
-td > a,
-td span,
-[style*="a4d233"],
-[style*="A4D233"] {
-    color: #000000 !important;
-    font-weight: 600 !important;
-}
-
-/* POI search box and labels */
-.form-label,
-label,
-.col-form-label,
-.text-muted,
-small {
-    color: #ffffff !important;
-}
-
-.form-control,
-.form-select,
-input,
-textarea {
-    color: #ffffff !important;
-    background-color: #2a2a2a !important;
-}
-
-.form-control::placeholder {
-    color: #bbbbbb !important;
-    opacity: 1 !important;
-}
-/* Force black text on EVERYTHING inside green calendar bars */
-.event-pill *,
-.calendar-event *,
-[class*="event"] *,
-td div *,
-td a *,
-td span * {
-    color: #000000 !important;
-}
-/* Calendar day numbers - make them white */
-.calendar-table td,
-.calendar-table th,
-td, th {
-    color: #ffffff !important;
-}
-
-/* Day numbers specifically */
-.day-number,
-.calendar-day,
-td {
-    color: #ffffff !important;
-}
-
-/* Dropdowns */
-.form-select,
-select,
-.dropdown-menu,
-.dropdown-item {
-    background-color: #2a2a2a !important;
-    color: #ffffff !important;
-}
-
-.form-select option {
-    background-color: #2a2a2a;
-    color: #ffffff;
-}
-/* ===== FORCE WHITE DATES & DROPDOWNS ===== */
-
-/* Calendar day numbers */
-table td, 
-table th,
-.calendar td,
-.calendar th,
-.calendar-table td,
-.calendar-table th,
-td, th {
-    color: #ffffff !important;
-}
-
-/* Make sure numbers are visible */
-td {
-    color: #ffffff !important;
-    font-weight: 500;
-}
-
-/* Dropdowns */
-select,
-.form-select,
-.form-control,
-.dropdown-toggle,
-.dropdown-menu,
-.dropdown-item {
-    background-color: #2a2a2a !important;
-    color: #ffffff !important;
-    border-color: #444 !important;
-}
-
-select option {
-    background-color: #2a2a2a !important;
-    color: #ffffff !important;
 }
