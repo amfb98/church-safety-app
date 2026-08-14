@@ -137,3 +137,39 @@ h1, h2, h3, h4, h5, h6 {
     background-color: #2ecc71 !important;
     color: #000 !important;
 }
+/* Classification dropdown & icons */
+.form-select,
+select {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border-color: #555 !important;
+}
+
+/* Clock and calendar icons in the form */
+.bi-clock, .bi-calendar, 
+input[type="time"] + .bi,
+input[type="date"] + .bi,
+.input-group-text {
+    color: #a4d233 !important;
+    background-color: #2a2a2a !important;
+    border-color: #555 !important;
+}
+
+/* Message board text */
+.message-card, 
+.message-item,
+.card-body,
+.card-body p,
+.list-group-item,
+.text-muted {
+    color: #e0e0e0 !important;
+}
+
+.text-muted {
+    color: #aaaaaa !important;
+}
+
+/* Make sure form labels are bright */
+.form-label, label {
+    color: #ffffff !important;
+}
