@@ -198,3 +198,57 @@ input[type="date"] + .bi,
     background-color: #ff6b6b !important;
     color: #000 !important;
 }
+/* POI names - make them white */
+.poi-card a,
+.poi-name,
+.card a,
+.list-group-item a,
+h5 a, h6 a {
+    color: #ffffff !important;
+}
+
+.poi-card a:hover,
+.card a:hover {
+    color: #a4d233 !important;
+}
+
+/* Better classification badges */
+.classification-critical,
+.badge-critical {
+    background-color: #e74c3c !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+
+.classification-high,
+.badge-high {
+    background-color: #e67e22 !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+
+.classification-medium,
+.badge-medium {
+    background-color: #f1c40f !important;
+    color: #000000 !important;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+
+.classification-low,
+.badge-low {
+    background-color: #27ae60 !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
