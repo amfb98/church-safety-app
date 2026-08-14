@@ -301,3 +301,38 @@ select,
     background-color: #2a2a2a;
     color: #ffffff;
 }
+/* ===== FORCE WHITE DATES & DROPDOWNS ===== */
+
+/* Calendar day numbers */
+table td, 
+table th,
+.calendar td,
+.calendar th,
+.calendar-table td,
+.calendar-table th,
+td, th {
+    color: #ffffff !important;
+}
+
+/* Make sure numbers are visible */
+td {
+    color: #ffffff !important;
+    font-weight: 500;
+}
+
+/* Dropdowns */
+select,
+.form-select,
+.form-control,
+.dropdown-toggle,
+.dropdown-menu,
+.dropdown-item {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border-color: #444 !important;
+}
+
+select option {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+}
