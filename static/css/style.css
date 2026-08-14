@@ -173,3 +173,28 @@ input[type="date"] + .bi,
 .form-label, label {
     color: #ffffff !important;
 }
+/* Force calendar cells back to dark */
+.calendar-table,
+.calendar-table td,
+.calendar-table th,
+.calendar-day {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+    border-color: #333 !important;
+}
+
+.calendar-day strong {
+    color: #ffffff !important;
+}
+/* Make Delete button clearer */
+.btn-outline-danger, 
+.btn-danger {
+    color: #ff6b6b !important;
+    border-color: #ff6b6b !important;
+    background-color: transparent !important;
+}
+
+.btn-outline-danger:hover {
+    background-color: #ff6b6b !important;
+    color: #000 !important;
+}
