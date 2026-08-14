@@ -41,6 +41,18 @@
             <label class="form-label">Internal Notes</label>
             <textarea name="notes" class="form-control" rows="3">{{ poi.notes if poi else '' }}</textarea>
         </div>
+        <div class="col-md-4">
+    <label class="form-label">License Plate</label>
+    <input type="text" class="form-control" name="license_plate" value="{{ poi.license_plate if poi else '' }}">
+</div>
+<div class="col-md-4">
+    <label class="form-label">Vehicle Color</label>
+    <input type="text" class="form-control" name="vehicle_color" value="{{ poi.vehicle_color if poi else '' }}">
+</div>
+<div class="col-md-4">
+    <label class="form-label">Vehicle Make & Model</label>
+    <input type="text" class="form-control" name="vehicle_make_model" value="{{ poi.vehicle_make_model if poi else '' }}">
+</div>
     </div>
     <div class="mt-4">
         <button type="submit" class="btn btn-primary">Save</button>
