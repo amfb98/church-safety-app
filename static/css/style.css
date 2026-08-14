@@ -228,3 +228,40 @@ div[style*="background: #a4d233"],
     color: #000000 !important;
     font-weight: 600;
 }
+/* ===== FINAL FIXES ===== */
+
+/* Force black text on green calendar events */
+.event-pill,
+.calendar-event,
+.event,
+[class*="event"],
+td > div,
+td > a,
+td span,
+[style*="a4d233"],
+[style*="A4D233"] {
+    color: #000000 !important;
+    font-weight: 600 !important;
+}
+
+/* POI search box and labels */
+.form-label,
+label,
+.col-form-label,
+.text-muted,
+small {
+    color: #ffffff !important;
+}
+
+.form-control,
+.form-select,
+input,
+textarea {
+    color: #ffffff !important;
+    background-color: #2a2a2a !important;
+}
+
+.form-control::placeholder {
+    color: #bbbbbb !important;
+    opacity: 1 !important;
+}
