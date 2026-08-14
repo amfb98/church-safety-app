@@ -66,6 +66,8 @@ class ScheduleEvent(db.Model):
     end_time = db.Column(db.String(10), default='')
     assigned_to = db.Column(db.String(256), default='')
     location = db.Column(db.String(120), default='')
+    role = db.Column(db.String(50), default='')          # Roamer, Sanctuary, Lobby
+    service = db.Column(db.String(20), default='')       # First, Second, Both
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
