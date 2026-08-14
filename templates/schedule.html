@@ -31,9 +31,9 @@
                 </div>
                 {% if events_by_day.get(day) %}
                     {% for e in events_by_day[day] %}
-                    <div class="event-pill" title="{{ e.title }}{% if e.start_time %} {{ e.start_time }}{% endif %}">
+                    <div class="event-pill">
                         <a href="{{ url_for('schedule_edit', event_id=e.id) }}">
-                            {% if e.start_time %}<small>{{ e.start_time }}</small> {% endif %}{{ e.title[:20] }}{% if e.title|length > 20 %}…{% endif %}
+                            {{ e.title }}{% if e.role %} - {{ e.role }}{% endif %}{% if e.service %} ({{ e.service }}){% endif %}
                         </a>
                     </div>
                     {% endfor %}
