@@ -14,7 +14,7 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback-key-change-me'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads', 'church_safety.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
@@ -26,13 +26,12 @@ login_manager.login_message_category = 'info'
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
-# Models
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     full_name = db.Column(db.String(120), nullable=False)
-    role = db.Column(db.String(20), default='member')  # admin, member
+    role = db.Column(db.String(20), default='member')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def set_password(self, password):
@@ -66,8 +65,8 @@ class ScheduleEvent(db.Model):
     end_time = db.Column(db.String(10), default='')
     assigned_to = db.Column(db.String(256), default='')
     location = db.Column(db.String(120), default='')
-    role = db.Column(db.String(50), default='')          # Roamer, Sanctuary, Lobby
-    service = db.Column(db.String(20), default='')       # First, Second, Both
+    role = db.Column(db.String(50), default='')
+    service = db.Column(db.String(20), default='')
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -109,7 +108,6 @@ def save_photo(file):
         return filename
     return None
 
-# Routes
 @app.route('/')
 def index():
     if current_user.is_authenticated:
@@ -147,7 +145,6 @@ def dashboard():
     recent_msgs = Message.query.order_by(Message.is_pinned.desc(), Message.created_at.desc()).limit(5).all()
     return render_template('dashboard.html', upcoming=upcoming, high_pois=high_pois, recent_msgs=recent_msgs)
 
-# ===== PERSONS OF INTEREST =====
 @app.route('/poi')
 @login_required
 def poi_list():
@@ -284,7 +281,6 @@ def poi_delete(poi_id):
     flash('Deleted', 'success')
     return redirect(url_for('poi_list'))
 
-# ===== SCHEDULE / CALENDAR =====
 @app.route('/schedule')
 @login_required
 def schedule():
@@ -344,6 +340,8 @@ def schedule_add():
             end_time=request.form.get('end_time', ''),
             assigned_to=request.form.get('assigned_to', '').strip(),
             location=request.form.get('location', '').strip(),
+            role=request.form.get('role', ''),
+            service=request.form.get('service', ''),
             created_by=current_user.id
         )
         db.session.add(event)
@@ -368,6 +366,8 @@ def schedule_edit(event_id):
         event.end_time = request.form.get('end_time', '')
         event.assigned_to = request.form.get('assigned_to', '').strip()
         event.location = request.form.get('location', '').strip()
+        event.role = request.form.get('role', '')
+        event.service = request.form.get('service', '')
         db.session.commit()
         flash('Updated', 'success')
         return redirect(url_for('schedule', year=event.event_date.year, month=event.event_date.month))
@@ -383,7 +383,6 @@ def schedule_delete(event_id):
     flash('Event deleted', 'success')
     return redirect(url_for('schedule', year=year, month=month))
 
-# ===== MESSAGE BOARD =====
 @app.route('/messages')
 @login_required
 def messages():
@@ -437,7 +436,6 @@ def message_delete(msg_id):
     flash('Deleted', 'success')
     return redirect(url_for('messages'))
 
-# ===== USERS (admin) =====
 @app.route('/users')
 @login_required
 def users():
@@ -495,16 +493,5 @@ with app.app_context():
         db.session.add(admin)
         db.session.commit()
 
-def init_db():
-    with app.app_context():
-        db.create_all()
-        if not User.query.filter_by(username='admin').first():
-            admin = User(username='admin', full_name='System Admin', role='admin')
-            admin.set_password('admin123')
-            db.session.add(admin)
-            db.session.commit()
-            print("Created default admin / admin123")
-
 if __name__ == '__main__':
-    init_db()
     app.run(debug=False, host='0.0.0.0', port=5000)
