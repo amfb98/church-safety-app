@@ -50,6 +50,8 @@ class PersonOfInterest(db.Model):
     classification = db.Column(db.String(20), default='low')  # low, medium, high, critical
     photo_filename = db.Column(db.String(256), default='')
     notes = db.Column(db.Text, default='')
+        license_plate = db.Column(db.String(50), default='')
+    vehicle_info = db.Column(db.String(256), default='')
     last_seen = db.Column(db.Date, nullable=True)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
