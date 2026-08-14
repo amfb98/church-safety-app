@@ -484,7 +484,32 @@ def user_delete(user_id):
     db.session.commit()
     flash('User deleted', 'success')
     return redirect(url_for('users'))
+@app.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        current = request.form.get('current_password', '')
+        new = request.form.get('new_password', '')
+        confirm = request.form.get('confirm_password', '')
 
+        if not current_user.check_password(current):
+            flash('Current password is incorrect', 'danger')
+            return redirect(url_for('change_password'))
+
+        if new != confirm:
+            flash('New passwords do not match', 'danger')
+            return redirect(url_for('change_password'))
+
+        if len(new) < 6:
+            flash('Password must be at least 6 characters', 'danger')
+            return redirect(url_for('change_password'))
+
+        current_user.set_password(new)
+        db.session.commit()
+        flash('Password updated successfully', 'success')
+        return redirect(url_for('dashboard'))
+
+    return render_template('change_password.html')
 with app.app_context():
     db.create_all()
     if not User.query.filter_by(username='admin').first():
