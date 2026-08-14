@@ -274,3 +274,30 @@ td a *,
 td span * {
     color: #000000 !important;
 }
+/* Calendar day numbers - make them white */
+.calendar-table td,
+.calendar-table th,
+td, th {
+    color: #ffffff !important;
+}
+
+/* Day numbers specifically */
+.day-number,
+.calendar-day,
+td {
+    color: #ffffff !important;
+}
+
+/* Dropdowns */
+.form-select,
+select,
+.dropdown-menu,
+.dropdown-item {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+}
+
+.form-select option {
+    background-color: #2a2a2a;
+    color: #ffffff;
+}
