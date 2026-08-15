@@ -25,20 +25,22 @@
     {% for week in weeks %}
         <tr>
         {% for day in week %}
-            <td class="calendar-day {% if day == 0 %}empty{% elif day == first.day and year==first.year and month==first.month %}today{% endif %}" style="height:120px;vertical-align:top;">
+            <td class="calendar-day {% if day == 0 %}empty{% endif %}" style="height:140px;vertical-align:top; min-width:120px;">
                 {% if day != 0 %}
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between mb-1">
                     <strong>{{ day }}</strong>
                 </div>
                 {% if events_by_day.get(day) %}
                     {% for e in events_by_day[day] %}
-                    <div class="event-pill mt-1">
-                        <a href="{{ url_for('schedule_detail', event_id=e.id) }}">
+                    <div class="mb-2">
+                        <a href="{{ url_for('schedule_detail', event_id=e.id) }}" class="fw-bold text-success d-block" style="font-size:0.85rem;">
                             {{ e.title }}
-                            {% if e.signups %}
-                                <small>({{ e.signups|length }})</small>
-                            {% endif %}
                         </a>
+                        {% for s in e.signups %}
+                            <div style="font-size:0.75rem; line-height:1.3;">
+                                {{ s.person_name }}{% if s.role %} – {{ s.role }}{% endif %}{% if s.service %} ({{ s.service }}){% endif %}
+                            </div>
+                        {% endfor %}
                     </div>
                     {% endfor %}
                 {% endif %}
