@@ -50,6 +50,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     full_name = db.Column(db.String(120), nullable=False)
     role = db.Column(db.String(20), default='member')
+    is_safety_team = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def set_password(self, password):
@@ -251,7 +252,8 @@ def schedule():
 @login_required
 def schedule_detail(event_id):
     event = ScheduleEvent.query.get_or_404(event_id)
-    users = User.query.order_by(User.full_name).all()
+    # Only show Safety Team members in the dropdown
+    users = User.query.filter_by(is_safety_team=True).order_by(User.full_name).all()
     return render_template('schedule_detail.html', event=event, users=users)
 
 @app.route('/schedule/<int:event_id>/signup', methods=['POST'])
@@ -603,7 +605,7 @@ def users():
     if current_user.role != 'admin':
         flash('Admin only', 'danger')
         return redirect(url_for('dashboard'))
-    return render_template('users.html', users=User.query.order_by(User.username).all())
+    return render_template('users.html', users=User.query.order_by(User.full_name).all())
 
 @app.route('/users/add', methods=['GET', 'POST'])
 @login_required
@@ -616,19 +618,52 @@ def user_add():
         full_name = request.form.get('full_name', '').strip()
         password = request.form.get('password', '')
         role = request.form.get('role', 'member')
+        is_safety_team = bool(request.form.get('is_safety_team'))
+
         if not username or not password or not full_name:
             flash('All fields required', 'danger')
             return redirect(url_for('user_add'))
         if User.query.filter_by(username=username).first():
             flash('Username already exists', 'danger')
             return redirect(url_for('user_add'))
-        user = User(username=username, full_name=full_name, role=role)
+
+        user = User(
+            username=username,
+            full_name=full_name,
+            role=role,
+            is_safety_team=is_safety_team
+        )
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
         flash(f'User {username} created', 'success')
         return redirect(url_for('users'))
-    return render_template('user_form.html')
+    return render_template('user_form.html', user=None)
+
+@app.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
+@login_required
+def user_edit(user_id):
+    if current_user.role != 'admin':
+        flash('Admin only', 'danger')
+        return redirect(url_for('dashboard'))
+
+    user = User.query.get_or_404(user_id)
+
+    if request.method == 'POST':
+        user.full_name = request.form.get('full_name', '').strip()
+        user.role = request.form.get('role', 'member')
+        user.is_safety_team = bool(request.form.get('is_safety_team'))
+
+        # Optional: allow password change
+        new_password = request.form.get('password', '').strip()
+        if new_password:
+            user.set_password(new_password)
+
+        db.session.commit()
+        flash('User updated', 'success')
+        return redirect(url_for('users'))
+
+    return render_template('user_form.html', user=user)
 
 @app.route('/users/<int:user_id>/delete', methods=['POST'])
 @login_required
@@ -670,7 +705,7 @@ def change_password():
 with app.app_context():
     db.create_all()
     if not User.query.filter_by(username='admin').first():
-        admin = User(username='admin', full_name='System Admin', role='admin')
+        admin = User(username='admin', full_name='System Admin', role='admin', is_safety_team=True)
         admin.set_password('admin123')
         db.session.add(admin)
         db.session.commit()
