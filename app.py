@@ -34,14 +34,12 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 EASTERN = pytz.timezone('US/Eastern')
 
 def to_eastern(dt):
-    """Convert UTC datetime to Eastern Time"""
     if dt is None:
         return None
     if dt.tzinfo is None:
         dt = pytz.utc.localize(dt)
     return dt.astimezone(EASTERN)
 
-# Make the helper available in all templates
 @app.context_processor
 def inject_eastern():
     return dict(to_eastern=to_eastern)
@@ -476,8 +474,18 @@ def schedule_add():
         db.session.commit()
         flash('Event added', 'success')
         return redirect(url_for('schedule', year=event_date.year, month=event_date.month))
+
+    # Handle Copy feature
+    copy_id = request.args.get('copy', type=int)
+    event = None
     default_date = request.args.get('date', date.today().isoformat())
-    return render_template('schedule_form.html', event=None, default_date=default_date)
+    if copy_id:
+        original = ScheduleEvent.query.get(copy_id)
+        if original:
+            event = original
+            default_date = date.today().isoformat()
+
+    return render_template('schedule_form.html', event=event, default_date=default_date)
 
 @app.route('/schedule/<int:event_id>/edit', methods=['GET', 'POST'])
 @login_required
