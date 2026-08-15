@@ -16,7 +16,8 @@
         </div>
         <div class="col-md-4">
             <label class="form-label">Date *</label>
-            <input type="date" name="event_date" class="form-control" required>
+            <input type="date" name="event_date" class="form-control" required
+                   value="{{ request.args.get('date', '') }}">
         </div>
 
         <div class="col-md-4">
