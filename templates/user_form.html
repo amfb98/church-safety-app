@@ -17,6 +17,12 @@
             <input type="text" name="username" class="form-control" required
                    placeholder="lowercase, no spaces">
         </div>
+        {% else %}
+        <div class="col-md-6">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-control" value="{{ user.username }}" disabled>
+            <div class="form-text">Username cannot be changed</div>
+        </div>
         {% endif %}
 
         <div class="col-md-6">
