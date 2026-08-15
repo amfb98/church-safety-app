@@ -56,9 +56,15 @@
         </div>
     </div>
 
-    <div class="mt-4">
+    <div class="mt-4 d-flex gap-2 flex-wrap">
         <button type="submit" class="btn btn-primary">Save</button>
         <a href="{{ url_for('schedule') }}" class="btn btn-secondary">Cancel</a>
+
+        {% if event %}
+        <a href="{{ url_for('schedule_add') }}?copy={{ event.id }}" class="btn btn-outline-success">
+            Copy Event
+        </a>
+        {% endif %}
     </div>
 </form>
 
