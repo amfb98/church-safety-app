@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,6 +8,10 @@ from dateutil.relativedelta import relativedelta
 import os
 from PIL import Image
 import uuid
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback-key-change-me')
@@ -281,6 +285,98 @@ def poi_delete(poi_id):
     flash('Deleted', 'success')
     return redirect(url_for('poi_list'))
 
+@app.route('/poi/export/all')
+@login_required
+def poi_export_all():
+    pois = PersonOfInterest.query.order_by(
+        db.case(
+            (PersonOfInterest.classification == 'critical', 1),
+            (PersonOfInterest.classification == 'high', 2),
+            (PersonOfInterest.classification == 'medium', 3),
+            else_=4
+        ),
+        PersonOfInterest.name
+    ).all()
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=16, spaceAfter=12)
+    heading_style = ParagraphStyle('Heading', parent=styles['Heading2'], fontSize=12, spaceBefore=10, spaceAfter=4)
+    normal = styles['Normal']
+
+    story = []
+    story.append(Paragraph("CNAZ Safety – Persons of Interest", title_style))
+    story.append(Paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", normal))
+    story.append(Spacer(1, 16))
+
+    for poi in pois:
+        story.append(Paragraph(f"<b>{poi.name}</b>  [{poi.classification.upper()}]", heading_style))
+        if poi.aliases:
+            story.append(Paragraph(f"<b>Aliases:</b> {poi.aliases}", normal))
+        if poi.description:
+            story.append(Paragraph(f"<b>Description:</b> {poi.description}", normal))
+        if poi.license_plate or poi.vehicle_color or poi.vehicle_make_model:
+            vehicle_parts = []
+            if poi.license_plate:
+                vehicle_parts.append(f"Plate: {poi.license_plate}")
+            if poi.vehicle_color:
+                vehicle_parts.append(f"Color: {poi.vehicle_color}")
+            if poi.vehicle_make_model:
+                vehicle_parts.append(f"Make/Model: {poi.vehicle_make_model}")
+            story.append(Paragraph(f"<b>Vehicle:</b> {' | '.join(vehicle_parts)}", normal))
+        if poi.notes:
+            story.append(Paragraph(f"<b>Notes:</b> {poi.notes}", normal))
+        if poi.last_seen:
+            story.append(Paragraph(f"<b>Last Seen:</b> {poi.last_seen.strftime('%Y-%m-%d')}", normal))
+        story.append(Spacer(1, 10))
+
+    doc.build(story)
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name="CNAZ_POIs_All.pdf", mimetype='application/pdf')
+
+@app.route('/poi/<int:poi_id>/export')
+@login_required
+def poi_export_one(poi_id):
+    poi = PersonOfInterest.query.get_or_404(poi_id)
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=16, spaceAfter=12)
+    normal = styles['Normal']
+
+    story = []
+    story.append(Paragraph("CNAZ Safety – Person of Interest", title_style))
+    story.append(Paragraph(f"<b>{poi.name}</b>  [{poi.classification.upper()}]", styles['Heading2']))
+    story.append(Spacer(1, 8))
+
+    if poi.aliases:
+        story.append(Paragraph(f"<b>Aliases:</b> {poi.aliases}", normal))
+    if poi.description:
+        story.append(Paragraph(f"<b>Description:</b> {poi.description}", normal))
+    if poi.license_plate or poi.vehicle_color or poi.vehicle_make_model:
+        vehicle_parts = []
+        if poi.license_plate:
+            vehicle_parts.append(f"Plate: {poi.license_plate}")
+        if poi.vehicle_color:
+            vehicle_parts.append(f"Color: {poi.vehicle_color}")
+        if poi.vehicle_make_model:
+            vehicle_parts.append(f"Make/Model: {poi.vehicle_make_model}")
+        story.append(Paragraph(f"<b>Vehicle:</b> {' | '.join(vehicle_parts)}", normal))
+    if poi.notes:
+        story.append(Paragraph(f"<b>Notes:</b> {poi.notes}", normal))
+    if poi.last_seen:
+        story.append(Paragraph(f"<b>Last Seen:</b> {poi.last_seen.strftime('%Y-%m-%d')}", normal))
+
+    story.append(Spacer(1, 12))
+    story.append(Paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", normal))
+
+    doc.build(story)
+    buffer.seek(0)
+    safe_name = "".join(c for c in poi.name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+    return send_file(buffer, as_attachment=True, download_name=f"POI_{safe_name}.pdf", mimetype='application/pdf')
+
 @app.route('/schedule')
 @login_required
 def schedule():
@@ -484,6 +580,7 @@ def user_delete(user_id):
     db.session.commit()
     flash('User deleted', 'success')
     return redirect(url_for('users'))
+
 @app.route('/change-password', methods=['GET', 'POST'])
 @login_required
 def change_password():
@@ -491,25 +588,21 @@ def change_password():
         current = request.form.get('current_password', '')
         new = request.form.get('new_password', '')
         confirm = request.form.get('confirm_password', '')
-
         if not current_user.check_password(current):
             flash('Current password is incorrect', 'danger')
             return redirect(url_for('change_password'))
-
         if new != confirm:
             flash('New passwords do not match', 'danger')
             return redirect(url_for('change_password'))
-
         if len(new) < 6:
             flash('Password must be at least 6 characters', 'danger')
             return redirect(url_for('change_password'))
-
         current_user.set_password(new)
         db.session.commit()
         flash('Password updated successfully', 'success')
         return redirect(url_for('dashboard'))
-
     return render_template('change_password.html')
+
 with app.app_context():
     db.create_all()
     if not User.query.filter_by(username='admin').first():
