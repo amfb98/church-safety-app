@@ -3,7 +3,9 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-calendar3"></i> Schedule</h2>
-    <a href="{{ url_for('schedule_add') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Event</a>
+    <a href="{{ url_for('schedule_add_event') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Add Special Event
+    </a>
 </div>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -23,17 +25,19 @@
     {% for week in weeks %}
         <tr>
         {% for day in week %}
-            <td class="calendar-day {% if day == 0 %}empty{% elif day == first.day and year==first.year and month==first.month %}today{% endif %}" style="height:110px;vertical-align:top;">
+            <td class="calendar-day {% if day == 0 %}empty{% elif day == first.day and year==first.year and month==first.month %}today{% endif %}" style="height:120px;vertical-align:top;">
                 {% if day != 0 %}
                 <div class="d-flex justify-content-between">
                     <strong>{{ day }}</strong>
-                    <a href="{{ url_for('schedule_add', date='%04d-%02d-%02d'|format(year, month, day)) }}" class="text-muted small" title="Add event">+</a>
                 </div>
                 {% if events_by_day.get(day) %}
                     {% for e in events_by_day[day] %}
-                    <div class="event-pill">
-                        <a href="{{ url_for('schedule_edit', event_id=e.id) }}">
-                            {{ e.title }}{% if e.role %} - {{ e.role }}{% endif %}{% if e.service %} ({{ e.service }}){% endif %}
+                    <div class="event-pill mt-1">
+                        <a href="{{ url_for('schedule_detail', event_id=e.id) }}">
+                            {{ e.title }}
+                            {% if e.signups %}
+                                <small>({{ e.signups|length }})</small>
+                            {% endif %}
                         </a>
                     </div>
                     {% endfor %}
