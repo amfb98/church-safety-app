@@ -312,19 +312,16 @@ def poi_export_all():
         ),
         PersonOfInterest.name
     ).all()
-
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=16, spaceAfter=12)
     heading_style = ParagraphStyle('Heading', parent=styles['Heading2'], fontSize=12, spaceBefore=14, spaceAfter=4)
     normal = styles['Normal']
-
     story = []
     story.append(Paragraph("CNAZ Safety – Persons of Interest", title_style))
     story.append(Paragraph(f"Generated: {to_eastern(datetime.utcnow()).strftime('%Y-%m-%d %I:%M %p ET')}", normal))
     story.append(Spacer(1, 16))
-
     for poi in pois:
         if poi.photo_filename:
             photo_path = os.path.join(app.config['UPLOAD_FOLDER'], poi.photo_filename)
@@ -335,24 +332,25 @@ def poi_export_all():
                     story.append(Spacer(1, 6))
                 except:
                     pass
-
-        story.append(Paragraph(f"<b>{poi.name}</b>  [{poi.classification.upper()}]", heading_style))
+        story.append(Paragraph(f"<b>{poi.name}</b> [{poi.classification.upper()}]", heading_style))
         if poi.aliases:
             story.append(Paragraph(f"<b>Aliases:</b> {poi.aliases}", normal))
         if poi.description:
             story.append(Paragraph(f"<b>Description:</b> {poi.description}", normal))
         if poi.license_plate or poi.vehicle_color or poi.vehicle_make_model:
             parts = []
-            if poi.license_plate: parts.append(f"Plate: {poi.license_plate}")
-            if poi.vehicle_color: parts.append(f"Color: {poi.vehicle_color}")
-            if poi.vehicle_make_model: parts.append(f"Make/Model: {poi.vehicle_make_model}")
+            if poi.license_plate:
+                parts.append(f"Plate: {poi.license_plate}")
+            if poi.vehicle_color:
+                parts.append(f"Color: {poi.vehicle_color}")
+            if poi.vehicle_make_model:
+                parts.append(f"Make/Model: {poi.vehicle_make_model}")
             story.append(Paragraph(f"<b>Vehicle:</b> {' | '.join(parts)}", normal))
         if poi.notes:
             story.append(Paragraph(f"<b>Notes:</b> {poi.notes}", normal))
         if poi.last_seen:
             story.append(Paragraph(f"<b>Last Seen:</b> {poi.last_seen.strftime('%Y-%m-%d')}", normal))
         story.append(Spacer(1, 12))
-
     doc.build(story)
     buffer.seek(0)
     return send_file(buffer, as_attachment=True, download_name="CNAZ_POIs_All.pdf", mimetype='application/pdf')
@@ -361,17 +359,14 @@ def poi_export_all():
 @login_required
 def poi_export_one(poi_id):
     poi = PersonOfInterest.query.get_or_404(poi_id)
-
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=16, spaceAfter=12)
     normal = styles['Normal']
-
     story = []
     story.append(Paragraph("CNAZ Safety – Person of Interest", title_style))
     story.append(Spacer(1, 8))
-
     if poi.photo_filename:
         photo_path = os.path.join(app.config['UPLOAD_FOLDER'], poi.photo_filename)
         if os.path.exists(photo_path):
@@ -381,28 +376,27 @@ def poi_export_one(poi_id):
                 story.append(Spacer(1, 10))
             except:
                 pass
-
-    story.append(Paragraph(f"<b>{poi.name}</b>  [{poi.classification.upper()}]", styles['Heading2']))
+    story.append(Paragraph(f"<b>{poi.name}</b> [{poi.classification.upper()}]", styles['Heading2']))
     story.append(Spacer(1, 6))
-
     if poi.aliases:
         story.append(Paragraph(f"<b>Aliases:</b> {poi.aliases}", normal))
     if poi.description:
         story.append(Paragraph(f"<b>Description:</b> {poi.description}", normal))
     if poi.license_plate or poi.vehicle_color or poi.vehicle_make_model:
         parts = []
-        if poi.license_plate: parts.append(f"Plate: {poi.license_plate}")
-        if poi.vehicle_color: parts.append(f"Color: {poi.vehicle_color}")
-        if poi.vehicle_make_model: parts.append(f"Make/Model: {poi.vehicle_make_model}")
+        if poi.license_plate:
+            parts.append(f"Plate: {poi.license_plate}")
+        if poi.vehicle_color:
+            parts.append(f"Color: {poi.vehicle_color}")
+        if poi.vehicle_make_model:
+            parts.append(f"Make/Model: {poi.vehicle_make_model}")
         story.append(Paragraph(f"<b>Vehicle:</b> {' | '.join(parts)}", normal))
     if poi.notes:
         story.append(Paragraph(f"<b>Notes:</b> {poi.notes}", normal))
     if poi.last_seen:
         story.append(Paragraph(f"<b>Last Seen:</b> {poi.last_seen.strftime('%Y-%m-%d')}", normal))
-
     story.append(Spacer(1, 14))
     story.append(Paragraph(f"Generated: {to_eastern(datetime.utcnow()).strftime('%Y-%m-%d %I:%M %p ET')}", normal))
-
     doc.build(story)
     buffer.seek(0)
     safe_name = "".join(c for c in poi.name if c.isalnum() or c in (' ', '-', '_')).rstrip()
@@ -439,7 +433,8 @@ def schedule():
         events_by_day[d].append(e)
     prev_month = first - relativedelta(months=1)
     next_m = first + relativedelta(months=1)
-    return render_template('schedule.html', year=year, month=month, weeks=weeks,
+    return render_template('schedule.html',
+                           year=year, month=month, weeks=weeks,
                            events_by_day=events_by_day, first=first,
                            prev_year=prev_month.year, prev_month=prev_month.month,
                            next_year=next_m.year, next_month=next_m.month,
@@ -448,35 +443,60 @@ def schedule():
 @app.route('/schedule/add', methods=['GET', 'POST'])
 @login_required
 def schedule_add():
+    users = User.query.order_by(User.full_name).all()
+
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
         event_date_str = request.form.get('event_date', '')
+        event_type = request.form.get('event_type', 'Church Service')
+        role = request.form.get('role', '')
+        service = request.form.get('service', '')
+        location = request.form.get('location', '').strip()
+        start_time = request.form.get('start_time', '')
+        end_time = request.form.get('end_time', '')
+
         if not title or not event_date_str:
-            flash('Title and date required', 'danger')
+            flash('Person and date are required', 'danger')
             return redirect(url_for('schedule_add'))
+
         try:
             event_date = datetime.strptime(event_date_str, '%Y-%m-%d').date()
         except ValueError:
             flash('Invalid date', 'danger')
             return redirect(url_for('schedule_add'))
+
+        # Auto-set times and location for Church Service
+        if event_type == 'Church Service':
+            location = '1436 Deerfield Rd'
+            if service == 'First':
+                start_time = '09:30'
+                end_time = '10:30'
+            elif service == 'Second':
+                start_time = '11:00'
+                end_time = '12:00'
+            elif service == 'Both':
+                start_time = '09:30'
+                end_time = '12:00'
+
         event = ScheduleEvent(
             title=title,
-            description=request.form.get('description', '').strip(),
+            description='',
             event_date=event_date,
-            start_time=request.form.get('start_time', ''),
-            end_time=request.form.get('end_time', ''),
-            assigned_to=request.form.get('assigned_to', '').strip(),
-            location=request.form.get('location', '').strip(),
-            role=request.form.get('role', ''),
-            service=request.form.get('service', ''),
-            event_type=request.form.get('event_type', 'Church Service'),
+            start_time=start_time,
+            end_time=end_time,
+            assigned_to='',
+            location=location,
+            role=role,
+            service=service,
+            event_type=event_type,
             created_by=current_user.id
         )
         db.session.add(event)
         db.session.commit()
-        flash('Event added', 'success')
+        flash('Signed up successfully', 'success')
         return redirect(url_for('schedule', year=event_date.year, month=event_date.month))
 
+    # Handle Copy
     copy_id = request.args.get('copy', type=int)
     event = None
     default_date = request.args.get('date', date.today().isoformat())
@@ -486,30 +506,46 @@ def schedule_add():
             event = original
             default_date = date.today().isoformat()
 
-    return render_template('schedule_form.html', event=event, default_date=default_date)
+    return render_template('schedule_form.html', event=event, default_date=default_date, users=users)
 
 @app.route('/schedule/<int:event_id>/edit', methods=['GET', 'POST'])
 @login_required
 def schedule_edit(event_id):
     event = ScheduleEvent.query.get_or_404(event_id)
+    users = User.query.order_by(User.full_name).all()
+
     if request.method == 'POST':
         event.title = request.form.get('title', '').strip()
-        event.description = request.form.get('description', '').strip()
+        event.event_type = request.form.get('event_type', 'Church Service')
+        event.role = request.form.get('role', '')
+        event.service = request.form.get('service', '')
+        event.location = request.form.get('location', '').strip()
+        event.start_time = request.form.get('start_time', '')
+        event.end_time = request.form.get('end_time', '')
+
         try:
             event.event_date = datetime.strptime(request.form.get('event_date'), '%Y-%m-%d').date()
         except:
             pass
-        event.start_time = request.form.get('start_time', '')
-        event.end_time = request.form.get('end_time', '')
-        event.assigned_to = request.form.get('assigned_to', '').strip()
-        event.location = request.form.get('location', '').strip()
-        event.role = request.form.get('role', '')
-        event.service = request.form.get('service', '')
-        event.event_type = request.form.get('event_type', 'Church Service')
+
+        # Auto-set times and location for Church Service
+        if event.event_type == 'Church Service':
+            event.location = '1436 Deerfield Rd'
+            if event.service == 'First':
+                event.start_time = '09:30'
+                event.end_time = '10:30'
+            elif event.service == 'Second':
+                event.start_time = '11:00'
+                event.end_time = '12:00'
+            elif event.service == 'Both':
+                event.start_time = '09:30'
+                event.end_time = '12:00'
+
         db.session.commit()
         flash('Updated', 'success')
         return redirect(url_for('schedule', year=event.event_date.year, month=event.event_date.month))
-    return render_template('schedule_form.html', event=event, default_date=event.event_date.isoformat())
+
+    return render_template('schedule_form.html', event=event, default_date=event.event_date.isoformat(), users=users)
 
 @app.route('/schedule/<int:event_id>/delete', methods=['POST'])
 @login_required
@@ -536,8 +572,7 @@ def message_new():
         if not title or not content:
             flash('Title and content required', 'danger')
             return redirect(url_for('message_new'))
-        msg = Message(title=title, content=content, author_id=current_user.id,
-                      is_pinned=bool(request.form.get('is_pinned')) and current_user.role == 'admin')
+        msg = Message(title=title, content=content, author_id=current_user.id, is_pinned=bool(request.form.get('is_pinned')) and current_user.role == 'admin')
         db.session.add(msg)
         db.session.commit()
         flash('Posted', 'success')
@@ -569,7 +604,6 @@ def message_edit(msg_id):
     if current_user.role != 'admin' and msg.author_id != current_user.id:
         flash('Not authorized', 'danger')
         return redirect(url_for('message_detail', msg_id=msg.id))
-
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
         content = request.form.get('content', '').strip()
@@ -581,7 +615,6 @@ def message_edit(msg_id):
         db.session.commit()
         flash('Post updated', 'success')
         return redirect(url_for('message_detail', msg_id=msg.id))
-
     return render_template('message_form.html', msg=msg)
 
 @app.route('/messages/reply/<int:reply_id>/edit', methods=['GET', 'POST'])
@@ -591,7 +624,6 @@ def reply_edit(reply_id):
     if current_user.role != 'admin' and reply.author_id != current_user.id:
         flash('Not authorized', 'danger')
         return redirect(url_for('message_detail', msg_id=reply.message_id))
-
     if request.method == 'POST':
         content = request.form.get('content', '').strip()
         if not content:
@@ -601,7 +633,6 @@ def reply_edit(reply_id):
         db.session.commit()
         flash('Reply updated', 'success')
         return redirect(url_for('message_detail', msg_id=reply.message_id))
-
     return render_template('reply_edit.html', reply=reply)
 
 @app.route('/messages/<int:msg_id>/delete', methods=['POST'])
