@@ -6,15 +6,14 @@
     <a href="{{ url_for('schedule') }}" class="btn btn-sm btn-outline-secondary">&laquo; Back to Calendar</a>
 </div>
 
+<!-- Event Header -->
 <div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <div>
-            <h4 class="mb-0">{{ event.title }}</h4>
-            <small class="text-muted">
-                {{ event.event_date.strftime('%A, %B %d, %Y') }}
-                {% if event.event_type %} · {{ event.event_type }}{% endif %}
-            </small>
-        </div>
+    <div class="card-header" style="background-color: #c6f36b; color: #000;">
+        <h4 class="mb-0" style="color: #000;">{{ event.title }}</h4>
+        <small style="color: #222;">
+            {{ event.event_date.strftime('%A, %B %d, %Y') }}
+            {% if event.event_type %} · {{ event.event_type }}{% endif %}
+        </small>
     </div>
     <div class="card-body">
         {% if event.location %}
@@ -30,10 +29,10 @@
     </div>
 </div>
 
-<!-- Current Sign-ups -->
+<!-- Who's Signed Up -->
 <div class="card mb-4">
-    <div class="card-header">
-        <strong>Who's Signed Up ({{ event.signups|length }})</strong>
+    <div class="card-header" style="background-color: #c6f36b; color: #000;">
+        <strong style="color: #000;">Who's Signed Up ({{ event.signups|length }})</strong>
     </div>
     <div class="card-body">
         {% if event.signups %}
@@ -58,10 +57,10 @@
     </div>
 </div>
 
-<!-- Sign-up Form -->
+<!-- Sign Up Form -->
 <div class="card">
-    <div class="card-header">
-        <strong>Sign Up</strong>
+    <div class="card-header" style="background-color: #c6f36b; color: #000;">
+        <strong style="color: #000;">Sign Up</strong>
     </div>
     <div class="card-body">
         <form method="POST" action="{{ url_for('schedule_signup', event_id=event.id) }}">
