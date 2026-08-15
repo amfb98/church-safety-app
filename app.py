@@ -10,8 +10,9 @@ from PIL import Image
 import uuid
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback-key-change-me')
@@ -302,7 +303,7 @@ def poi_export_all():
     doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=16, spaceAfter=12)
-    heading_style = ParagraphStyle('Heading', parent=styles['Heading2'], fontSize=12, spaceBefore=10, spaceAfter=4)
+    heading_style = ParagraphStyle('Heading', parent=styles['Heading2'], fontSize=12, spaceBefore=14, spaceAfter=4)
     normal = styles['Normal']
 
     story = []
@@ -311,25 +312,32 @@ def poi_export_all():
     story.append(Spacer(1, 16))
 
     for poi in pois:
+        if poi.photo_filename:
+            photo_path = os.path.join(app.config['UPLOAD_FOLDER'], poi.photo_filename)
+            if os.path.exists(photo_path):
+                try:
+                    img = RLImage(photo_path, width=1.5*inch, height=1.5*inch)
+                    story.append(img)
+                    story.append(Spacer(1, 6))
+                except:
+                    pass
+
         story.append(Paragraph(f"<b>{poi.name}</b>  [{poi.classification.upper()}]", heading_style))
         if poi.aliases:
             story.append(Paragraph(f"<b>Aliases:</b> {poi.aliases}", normal))
         if poi.description:
             story.append(Paragraph(f"<b>Description:</b> {poi.description}", normal))
         if poi.license_plate or poi.vehicle_color or poi.vehicle_make_model:
-            vehicle_parts = []
-            if poi.license_plate:
-                vehicle_parts.append(f"Plate: {poi.license_plate}")
-            if poi.vehicle_color:
-                vehicle_parts.append(f"Color: {poi.vehicle_color}")
-            if poi.vehicle_make_model:
-                vehicle_parts.append(f"Make/Model: {poi.vehicle_make_model}")
-            story.append(Paragraph(f"<b>Vehicle:</b> {' | '.join(vehicle_parts)}", normal))
+            parts = []
+            if poi.license_plate: parts.append(f"Plate: {poi.license_plate}")
+            if poi.vehicle_color: parts.append(f"Color: {poi.vehicle_color}")
+            if poi.vehicle_make_model: parts.append(f"Make/Model: {poi.vehicle_make_model}")
+            story.append(Paragraph(f"<b>Vehicle:</b> {' | '.join(parts)}", normal))
         if poi.notes:
             story.append(Paragraph(f"<b>Notes:</b> {poi.notes}", normal))
         if poi.last_seen:
             story.append(Paragraph(f"<b>Last Seen:</b> {poi.last_seen.strftime('%Y-%m-%d')}", normal))
-        story.append(Spacer(1, 10))
+        story.append(Spacer(1, 12))
 
     doc.build(story)
     buffer.seek(0)
@@ -348,28 +356,37 @@ def poi_export_one(poi_id):
 
     story = []
     story.append(Paragraph("CNAZ Safety – Person of Interest", title_style))
-    story.append(Paragraph(f"<b>{poi.name}</b>  [{poi.classification.upper()}]", styles['Heading2']))
     story.append(Spacer(1, 8))
+
+    if poi.photo_filename:
+        photo_path = os.path.join(app.config['UPLOAD_FOLDER'], poi.photo_filename)
+        if os.path.exists(photo_path):
+            try:
+                img = RLImage(photo_path, width=2.2*inch, height=2.2*inch)
+                story.append(img)
+                story.append(Spacer(1, 10))
+            except:
+                pass
+
+    story.append(Paragraph(f"<b>{poi.name}</b>  [{poi.classification.upper()}]", styles['Heading2']))
+    story.append(Spacer(1, 6))
 
     if poi.aliases:
         story.append(Paragraph(f"<b>Aliases:</b> {poi.aliases}", normal))
     if poi.description:
         story.append(Paragraph(f"<b>Description:</b> {poi.description}", normal))
     if poi.license_plate or poi.vehicle_color or poi.vehicle_make_model:
-        vehicle_parts = []
-        if poi.license_plate:
-            vehicle_parts.append(f"Plate: {poi.license_plate}")
-        if poi.vehicle_color:
-            vehicle_parts.append(f"Color: {poi.vehicle_color}")
-        if poi.vehicle_make_model:
-            vehicle_parts.append(f"Make/Model: {poi.vehicle_make_model}")
-        story.append(Paragraph(f"<b>Vehicle:</b> {' | '.join(vehicle_parts)}", normal))
+        parts = []
+        if poi.license_plate: parts.append(f"Plate: {poi.license_plate}")
+        if poi.vehicle_color: parts.append(f"Color: {poi.vehicle_color}")
+        if poi.vehicle_make_model: parts.append(f"Make/Model: {poi.vehicle_make_model}")
+        story.append(Paragraph(f"<b>Vehicle:</b> {' | '.join(parts)}", normal))
     if poi.notes:
         story.append(Paragraph(f"<b>Notes:</b> {poi.notes}", normal))
     if poi.last_seen:
         story.append(Paragraph(f"<b>Last Seen:</b> {poi.last_seen.strftime('%Y-%m-%d')}", normal))
 
-    story.append(Spacer(1, 12))
+    story.append(Spacer(1, 14))
     story.append(Paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", normal))
 
     doc.build(story)
