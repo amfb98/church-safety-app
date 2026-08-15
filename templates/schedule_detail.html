@@ -2,8 +2,13 @@
 {% block title %}{{ event.title }} - {{ event.event_date.strftime('%b %d, %Y') }}{% endblock %}
 {% block content %}
 
-<div class="mb-3">
+<div class="mb-3 d-flex justify-content-between align-items-center">
     <a href="{{ url_for('schedule') }}" class="btn btn-sm btn-outline-secondary">&laquo; Back to Calendar</a>
+    
+    <form method="POST" action="{{ url_for('schedule_delete', event_id=event.id) }}" 
+          onsubmit="return confirm('Are you sure you want to delete this entire event and all sign-ups?');">
+        <button type="submit" class="btn btn-sm btn-outline-danger">Delete Event</button>
+    </form>
 </div>
 
 <!-- Event Header -->
