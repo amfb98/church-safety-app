@@ -141,7 +141,7 @@ def ensure_upcoming_sundays():
     days_until_sunday = (6 - today.weekday()) % 7
     next_sunday = today + relativedelta(days=days_until_sunday)
 
-    for i in range(10):
+    for i in range(52):
         sunday = next_sunday + relativedelta(weeks=i)
         exists = ScheduleEvent.query.filter_by(
             event_date=sunday,
