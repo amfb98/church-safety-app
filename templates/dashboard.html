@@ -1,8 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Dashboard - Church Safety{% endblock %}
+{% block title %}Dashboard - CNAZ Safety{% endblock %}
 {% block content %}
 <h2 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard</h2>
 <div class="row g-4">
+
+    <!-- Upcoming Schedule -->
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-header bg-primary text-white">
@@ -10,16 +12,22 @@
             </div>
             <div class="card-body">
                 {% if upcoming %}
-                    <ul class="list-group list-group-flush">
+                    {% set current_date = None %}
                     {% for e in upcoming %}
-                        <li class="list-group-item px-0">
-                            <strong>{{ e.event_date.strftime('%b %d') }}</strong>
-                            {% if e.start_time %} {{ e.start_time }}{% endif %}
-                            <br>{{ e.title }}
-                            {% if e.assigned_to %}<br><small class="text-muted">{{ e.assigned_to }}</small>{% endif %}
-                        </li>
+                        {% if e.event_date != current_date %}
+                            {% if current_date is not none %}<hr class="my-2">{% endif %}
+                            <div class="fw-bold text-success mb-1">
+                                {{ e.event_date.strftime('%a, %b %d') }}
+                                {% if e.event_type %} · {{ e.event_type }}{% endif %}
+                            </div>
+                            {% set current_date = e.event_date %}
+                        {% endif %}
+                        <div class="mb-1 small">
+                            <strong>{{ e.title }}</strong>
+                            {% if e.role %} – {{ e.role }}{% endif %}
+                            {% if e.service %} ({{ e.service }}){% endif %}
+                        </div>
                     {% endfor %}
-                    </ul>
                 {% else %}
                     <p class="text-muted mb-0">No upcoming events</p>
                 {% endif %}
@@ -27,6 +35,8 @@
             </div>
         </div>
     </div>
+
+    <!-- High Priority POIs -->
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-header bg-danger text-white">
@@ -44,7 +54,7 @@
                             {% endif %}
                             <div>
                                 <a href="{{ url_for('poi_detail', poi_id=p.id) }}">{{ p.name }}</a>
-                                <span class="badge bg-{{ 'danger' if p.classification == 'critical' else 'warning' }}">{{ p.classification }}</span>
+                                <span class="badge classification-{{ p.classification }}">{{ p.classification|upper }}</span>
                             </div>
                         </li>
                     {% endfor %}
@@ -56,6 +66,8 @@
             </div>
         </div>
     </div>
+
+    <!-- Recent Messages -->
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-header bg-success text-white">
@@ -68,7 +80,7 @@
                         <li class="list-group-item px-0">
                             {% if m.is_pinned %}<i class="bi bi-pin-angle-fill text-warning"></i> {% endif %}
                             <a href="{{ url_for('message_detail', msg_id=m.id) }}">{{ m.title }}</a>
-                            <br><small class="text-muted">{{ m.author.full_name }} · {{ m.created_at.strftime('%b %d') }}</small>
+                            <br><small class="text-muted">{{ m.author.full_name }} · {{ to_eastern(m.created_at).strftime('%b %d') }}</small>
                         </li>
                     {% endfor %}
                     </ul>
@@ -79,5 +91,6 @@
             </div>
         </div>
     </div>
+
 </div>
 {% endblock %}
