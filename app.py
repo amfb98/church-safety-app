@@ -13,6 +13,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
+import pytz
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback-key-change-me')
@@ -30,6 +31,20 @@ login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+EASTERN = pytz.timezone('US/Eastern')
+
+def to_eastern(dt):
+    """Convert UTC datetime to Eastern Time"""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        dt = pytz.utc.localize(dt)
+    return dt.astimezone(EASTERN)
+
+# Make the helper available in all templates
+@app.context_processor
+def inject_eastern():
+    return dict(to_eastern=to_eastern)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -308,7 +323,7 @@ def poi_export_all():
 
     story = []
     story.append(Paragraph("CNAZ Safety – Persons of Interest", title_style))
-    story.append(Paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", normal))
+    story.append(Paragraph(f"Generated: {to_eastern(datetime.utcnow()).strftime('%Y-%m-%d %I:%M %p ET')}", normal))
     story.append(Spacer(1, 16))
 
     for poi in pois:
@@ -387,7 +402,7 @@ def poi_export_one(poi_id):
         story.append(Paragraph(f"<b>Last Seen:</b> {poi.last_seen.strftime('%Y-%m-%d')}", normal))
 
     story.append(Spacer(1, 14))
-    story.append(Paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", normal))
+    story.append(Paragraph(f"Generated: {to_eastern(datetime.utcnow()).strftime('%Y-%m-%d %I:%M %p ET')}", normal))
 
     doc.build(story)
     buffer.seek(0)
