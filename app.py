@@ -89,6 +89,17 @@ class ScheduleEvent(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class ShiftSignUp(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('schedule_event.id'), nullable=False)
+    person_name = db.Column(db.String(120), nullable=False)
+    role = db.Column(db.String(50), default='')
+    service = db.Column(db.String(20), default='')
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    event = db.relationship('ScheduleEvent', backref=db.backref('signups', lazy=True, cascade='all, delete-orphan'))
+
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
@@ -339,12 +350,9 @@ def poi_export_all():
             story.append(Paragraph(f"<b>Description:</b> {poi.description}", normal))
         if poi.license_plate or poi.vehicle_color or poi.vehicle_make_model:
             parts = []
-            if poi.license_plate:
-                parts.append(f"Plate: {poi.license_plate}")
-            if poi.vehicle_color:
-                parts.append(f"Color: {poi.vehicle_color}")
-            if poi.vehicle_make_model:
-                parts.append(f"Make/Model: {poi.vehicle_make_model}")
+            if poi.license_plate: parts.append(f"Plate: {poi.license_plate}")
+            if poi.vehicle_color: parts.append(f"Color: {poi.vehicle_color}")
+            if poi.vehicle_make_model: parts.append(f"Make/Model: {poi.vehicle_make_model}")
             story.append(Paragraph(f"<b>Vehicle:</b> {' | '.join(parts)}", normal))
         if poi.notes:
             story.append(Paragraph(f"<b>Notes:</b> {poi.notes}", normal))
@@ -384,12 +392,9 @@ def poi_export_one(poi_id):
         story.append(Paragraph(f"<b>Description:</b> {poi.description}", normal))
     if poi.license_plate or poi.vehicle_color or poi.vehicle_make_model:
         parts = []
-        if poi.license_plate:
-            parts.append(f"Plate: {poi.license_plate}")
-        if poi.vehicle_color:
-            parts.append(f"Color: {poi.vehicle_color}")
-        if poi.vehicle_make_model:
-            parts.append(f"Make/Model: {poi.vehicle_make_model}")
+        if poi.license_plate: parts.append(f"Plate: {poi.license_plate}")
+        if poi.vehicle_color: parts.append(f"Color: {poi.vehicle_color}")
+        if poi.vehicle_make_model: parts.append(f"Make/Model: {poi.vehicle_make_model}")
         story.append(Paragraph(f"<b>Vehicle:</b> {' | '.join(parts)}", normal))
     if poi.notes:
         story.append(Paragraph(f"<b>Notes:</b> {poi.notes}", normal))
@@ -413,15 +418,18 @@ def schedule():
     if month > 12:
         month = 1
         year += 1
+
     first = date(year, month, 1)
     if month == 12:
         next_month = date(year + 1, 1, 1)
     else:
         next_month = date(year, month + 1, 1)
+
     events = ScheduleEvent.query.filter(
         ScheduleEvent.event_date >= first,
         ScheduleEvent.event_date < next_month
     ).order_by(ScheduleEvent.event_date, ScheduleEvent.start_time).all()
+
     import calendar
     cal = calendar.Calendar(firstweekday=6)
     weeks = cal.monthdayscalendar(year, month)
@@ -431,8 +439,10 @@ def schedule():
         if d not in events_by_day:
             events_by_day[d] = []
         events_by_day[d].append(e)
+
     prev_month = first - relativedelta(months=1)
     next_m = first + relativedelta(months=1)
+
     return render_template('schedule.html',
                            year=year, month=month, weeks=weeks,
                            events_by_day=events_by_day, first=first,
@@ -465,7 +475,6 @@ def schedule_add():
             flash('Invalid date', 'danger')
             return redirect(url_for('schedule_add'))
 
-        # Auto-set times and location for Church Service
         if event_type == 'Church Service':
             location = '1436 Deerfield Rd'
             if service == 'First':
@@ -496,7 +505,6 @@ def schedule_add():
         flash('Signed up successfully', 'success')
         return redirect(url_for('schedule', year=event_date.year, month=event_date.month))
 
-    # Handle Copy
     copy_id = request.args.get('copy', type=int)
     event = None
     default_date = request.args.get('date', date.today().isoformat())
@@ -528,7 +536,6 @@ def schedule_edit(event_id):
         except:
             pass
 
-        # Auto-set times and location for Church Service
         if event.event_type == 'Church Service':
             event.location = '1436 Deerfield Rd'
             if event.service == 'First':
