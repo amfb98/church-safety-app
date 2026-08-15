@@ -12,28 +12,28 @@
             </div>
             <div class="card-body">
                 {% if upcoming %}
-                    {% set ns = namespace(current_date=None) %}
                     {% for e in upcoming %}
-                        {% if e.event_date != ns.current_date %}
-                            {% if ns.current_date is not none %}
-                                <hr class="my-2">
-                            {% endif %}
-                            <div class="fw-bold text-success mb-1">
-                                {{ e.event_date.strftime('%a, %b %d') }}
-                                {% if e.event_type %} · {{ e.event_type }}{% endif %}
+                        <div class="mb-3">
+                            <div class="fw-bold text-success">
+                                {{ e.event_date.strftime('%a, %b %d') }} · {{ e.title }}
                             </div>
-                            {% set ns.current_date = e.event_date %}
-                        {% endif %}
-                        <div class="mb-1 small">
-                            <strong>{{ e.title }}</strong>
-                            {% if e.role %} – {{ e.role }}{% endif %}
-                            {% if e.service %} ({{ e.service }}){% endif %}
+                            {% if e.signups %}
+                                {% for s in e.signups %}
+                                    <div class="small ms-2">
+                                        {{ s.person_name }}
+                                        {% if s.role %} – {{ s.role }}{% endif %}
+                                        {% if s.service %} ({{ s.service }}){% endif %}
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="small text-muted ms-2">No one signed up yet</div>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 {% else %}
                     <p class="text-muted mb-0">No upcoming events</p>
                 {% endif %}
-                <a href="{{ url_for('schedule') }}" class="btn btn-sm btn-outline-primary mt-3">View Calendar</a>
+                <a href="{{ url_for('schedule') }}" class="btn btn-sm btn-outline-primary mt-2">View Calendar</a>
             </div>
         </div>
     </div>
