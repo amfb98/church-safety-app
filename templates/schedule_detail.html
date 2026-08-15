@@ -8,9 +8,9 @@
 
 <!-- Event Header -->
 <div class="card mb-4">
-    <div class="card-header" style="background-color: #c6f36b; color: #000;">
-        <h4 class="mb-0" style="color: #000;">{{ event.title }}</h4>
-        <small style="color: #222;">
+    <div class="card-header" style="background-color: #c6f36b !important; color: #000 !important;">
+        <h4 class="mb-0" style="color: #000 !important; font-weight: 700;">{{ event.title }}</h4>
+        <small style="color: #222 !important;">
             {{ event.event_date.strftime('%A, %B %d, %Y') }}
             {% if event.event_type %} · {{ event.event_type }}{% endif %}
         </small>
