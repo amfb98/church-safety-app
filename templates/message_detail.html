@@ -20,7 +20,7 @@
     </div>
     <div class="card-body">
         <p class="card-text" style="white-space: pre-wrap;">{{ msg.content }}</p>
-        <small class="text-muted">Posted by {{ msg.author.full_name }} on {{ msg.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+        <small class="text-muted">Posted by {{ msg.author.full_name }} on {{ to_eastern(msg.created_at).strftime('%Y-%m-%d %I:%M %p') }} ET</small>
     </div>
 </div>
 
@@ -29,7 +29,7 @@
 <div class="card mb-2">
     <div class="card-body py-2">
         <p class="mb-1" style="white-space: pre-wrap;">{{ r.content }}</p>
-        <small class="text-muted">{{ r.author.full_name }} · {{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+        <small class="text-muted">{{ r.author.full_name }} · {{ to_eastern(r.created_at).strftime('%Y-%m-%d %I:%M %p') }} ET</small>
     </div>
 </div>
 {% else %}
