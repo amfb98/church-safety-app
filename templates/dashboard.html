@@ -7,33 +7,33 @@
     <!-- Upcoming Schedule -->
     <div class="col-md-4">
         <div class="card h-100">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header" style="background-color: #c6f36b; color: #000;">
                 <i class="bi bi-calendar-event"></i> Upcoming Schedule
             </div>
             <div class="card-body">
                 {% if upcoming %}
                     {% for e in upcoming %}
                         <div class="mb-3">
-                            <div class="fw-bold text-success">
+                            <div class="fw-bold" style="color: #c6f36b;">
                                 {{ e.event_date.strftime('%a, %b %d') }} · {{ e.title }}
                             </div>
                             {% if e.signups %}
                                 {% for s in e.signups %}
-                                    <div class="small ms-2">
+                                    <div class="small" style="color: #ddd;">
                                         {{ s.person_name }}
                                         {% if s.role %} – {{ s.role }}{% endif %}
                                         {% if s.service %} ({{ s.service }}){% endif %}
                                     </div>
                                 {% endfor %}
                             {% else %}
-                                <div class="small text-muted ms-2">No one signed up yet</div>
+                                <div class="small text-muted">No one signed up yet</div>
                             {% endif %}
                         </div>
                     {% endfor %}
                 {% else %}
                     <p class="text-muted mb-0">No upcoming events</p>
                 {% endif %}
-                <a href="{{ url_for('schedule') }}" class="btn btn-sm btn-outline-primary mt-2">View Calendar</a>
+                <a href="{{ url_for('schedule') }}" class="btn btn-sm btn-outline-success mt-2">View Calendar</a>
             </div>
         </div>
     </div>
