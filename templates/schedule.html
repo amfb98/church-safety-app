@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-calendar3"></i> Schedule</h2>
     <a href="{{ url_for('schedule_add_event') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i> Add Special Event
+        <i class="bi bi-plus-lg"></i> Add Event
     </a>
 </div>
 
@@ -27,8 +27,10 @@
         {% for day in week %}
             <td class="calendar-day {% if day == 0 %}empty{% endif %}" style="height:155px; vertical-align:top; min-width:125px;">
                 {% if day != 0 %}
-                <div class="d-flex justify-content-between mb-1">
+                <div class="d-flex justify-content-between align-items-center mb-1">
                     <strong>{{ day }}</strong>
+                    <a href="{{ url_for('schedule_add_event') }}?date={{ '%04d-%02d-%02d'|format(year, month, day) }}" 
+                       class="text-success" style="font-size: 1.1rem; text-decoration: none;" title="Add event">+</a>
                 </div>
                 {% if events_by_day.get(day) %}
                     {% for e in events_by_day[day] %}
