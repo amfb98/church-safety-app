@@ -32,16 +32,17 @@
                 </div>
                 {% if events_by_day.get(day) %}
                     {% for e in events_by_day[day] %}
-                    <div class="mb-2">
-                        <a href="{{ url_for('schedule_detail', event_id=e.id) }}" class="fw-bold text-success d-block" style="font-size:0.85rem;">
+                    <div class="event-pill mb-1">
+                        <a href="{{ url_for('schedule_detail', event_id=e.id) }}">
                             {{ e.title }}
+                            {% if e.signups %} ({{ e.signups|length }}){% endif %}
                         </a>
-                        {% for s in e.signups %}
-                            <div style="font-size:0.75rem; line-height:1.3;">
-                                {{ s.person_name }}{% if s.role %} – {{ s.role }}{% endif %}{% if s.service %} ({{ s.service }}){% endif %}
-                            </div>
-                        {% endfor %}
                     </div>
+                    {% for s in e.signups %}
+                        <div style="font-size:0.72rem; line-height:1.25; padding-left:4px;">
+                            {{ s.person_name }}{% if s.role %} – {{ s.role }}{% endif %}{% if s.service %} ({{ s.service }}){% endif %}
+                        </div>
+                    {% endfor %}
                     {% endfor %}
                 {% endif %}
                 {% endif %}
