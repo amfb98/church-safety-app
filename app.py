@@ -475,7 +475,6 @@ def schedule_add():
         flash('Event added', 'success')
         return redirect(url_for('schedule', year=event_date.year, month=event_date.month))
 
-    # Handle Copy feature
     copy_id = request.args.get('copy', type=int)
     event = None
     default_date = request.args.get('date', date.today().isoformat())
@@ -540,7 +539,7 @@ def message_new():
         db.session.commit()
         flash('Posted', 'success')
         return redirect(url_for('message_detail', msg_id=msg.id))
-    return render_template('message_form.html')
+    return render_template('message_form.html', msg=None)
 
 @app.route('/messages/<int:msg_id>')
 @login_required
@@ -559,6 +558,48 @@ def message_reply(msg_id):
         db.session.commit()
         flash('Reply posted', 'success')
     return redirect(url_for('message_detail', msg_id=msg.id))
+
+@app.route('/messages/<int:msg_id>/edit', methods=['GET', 'POST'])
+@login_required
+def message_edit(msg_id):
+    msg = Message.query.get_or_404(msg_id)
+    if current_user.role != 'admin' and msg.author_id != current_user.id:
+        flash('Not authorized', 'danger')
+        return redirect(url_for('message_detail', msg_id=msg.id))
+
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        content = request.form.get('content', '').strip()
+        if not title or not content:
+            flash('Title and content required', 'danger')
+            return redirect(url_for('message_edit', msg_id=msg.id))
+        msg.title = title
+        msg.content = content
+        db.session.commit()
+        flash('Post updated', 'success')
+        return redirect(url_for('message_detail', msg_id=msg.id))
+
+    return render_template('message_form.html', msg=msg)
+
+@app.route('/messages/reply/<int:reply_id>/edit', methods=['GET', 'POST'])
+@login_required
+def reply_edit(reply_id):
+    reply = MessageReply.query.get_or_404(reply_id)
+    if current_user.role != 'admin' and reply.author_id != current_user.id:
+        flash('Not authorized', 'danger')
+        return redirect(url_for('message_detail', msg_id=reply.message_id))
+
+    if request.method == 'POST':
+        content = request.form.get('content', '').strip()
+        if not content:
+            flash('Reply cannot be empty', 'danger')
+            return redirect(url_for('reply_edit', reply_id=reply.id))
+        reply.content = content
+        db.session.commit()
+        flash('Reply updated', 'success')
+        return redirect(url_for('message_detail', msg_id=reply.message_id))
+
+    return render_template('reply_edit.html', reply=reply)
 
 @app.route('/messages/<int:msg_id>/delete', methods=['POST'])
 @login_required
