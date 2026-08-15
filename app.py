@@ -44,8 +44,6 @@ def to_eastern(dt):
 def inject_eastern():
     return dict(to_eastern=to_eastern)
 
-# ==================== MODELS ====================
-
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -121,8 +119,6 @@ class MessageReply(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# ==================== HELPERS ====================
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -140,7 +136,6 @@ def save_photo(file):
     return None
 
 def ensure_upcoming_sundays():
-    """Create the next 10 Sundays as Church Service events if they don't already exist."""
     today = date.today()
     days_until_sunday = (6 - today.weekday()) % 7
     next_sunday = today + relativedelta(days=days_until_sunday)
@@ -165,8 +160,6 @@ def ensure_upcoming_sundays():
             )
             db.session.add(event)
     db.session.commit()
-
-# ==================== ROUTES ====================
 
 @app.route('/')
 def index():
@@ -200,16 +193,18 @@ def logout():
 def dashboard():
     ensure_upcoming_sundays()
     today = date.today()
-   two_weeks = today + relativedelta(weeks=2)
-upcoming = ScheduleEvent.query.filter(
-    ScheduleEvent.event_date >= today,
-    ScheduleEvent.event_date <= two_weeks
-).order_by(ScheduleEvent.event_date).all()
-    high_pois = PersonOfInterest.query.filter(PersonOfInterest.classification.in_(['high', 'critical'])).order_by(PersonOfInterest.updated_at.desc()).limit(5).all()
-    recent_msgs = Message.query.order_by(Message.is_pinned.desc(), Message.created_at.desc()).limit(5).all()
+    two_weeks = today + relativedelta(weeks=2)
+    upcoming = ScheduleEvent.query.filter(
+        ScheduleEvent.event_date >= today,
+        ScheduleEvent.event_date <= two_weeks
+    ).order_by(ScheduleEvent.event_date).all()
+    high_pois = PersonOfInterest.query.filter(
+        PersonOfInterest.classification.in_(['high', 'critical'])
+    ).order_by(PersonOfInterest.updated_at.desc()).limit(5).all()
+    recent_msgs = Message.query.order_by(
+        Message.is_pinned.desc(), Message.created_at.desc()
+    ).limit(5).all()
     return render_template('dashboard.html', upcoming=upcoming, high_pois=high_pois, recent_msgs=recent_msgs)
-
-# ---------- SCHEDULE ----------
 
 @app.route('/schedule')
 @login_required
@@ -296,7 +291,6 @@ def signup_delete(signup_id):
 @app.route('/schedule/add-event', methods=['GET', 'POST'])
 @login_required
 def schedule_add_event():
-    """Create a Special Event or Meeting"""
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
         event_date_str = request.form.get('event_date', '')
@@ -330,8 +324,6 @@ def schedule_add_event():
         return redirect(url_for('schedule_detail', event_id=event.id))
 
     return render_template('schedule_add_event.html')
-
-# ---------- POI (kept the same) ----------
 
 @app.route('/poi')
 @login_required
@@ -439,8 +431,10 @@ def poi_edit(poi_id):
                     if poi.photo_filename:
                         old = os.path.join(app.config['UPLOAD_FOLDER'], poi.photo_filename)
                         if os.path.exists(old):
-                            try: os.remove(old)
-                            except: pass
+                            try:
+                                os.remove(old)
+                            except:
+                                pass
                     poi.photo_filename = new_photo
         poi.updated_at = datetime.utcnow()
         db.session.commit()
@@ -458,8 +452,10 @@ def poi_delete(poi_id):
     if poi.photo_filename:
         path = os.path.join(app.config['UPLOAD_FOLDER'], poi.photo_filename)
         if os.path.exists(path):
-            try: os.remove(path)
-            except: pass
+            try:
+                os.remove(path)
+            except:
+                pass
     db.session.delete(poi)
     db.session.commit()
     flash('Deleted', 'success')
@@ -507,8 +503,6 @@ def poi_export_one(poi_id):
     doc.build(story)
     buffer.seek(0)
     return send_file(buffer, as_attachment=True, download_name=f"POI_{poi.name}.pdf", mimetype='application/pdf')
-
-# ---------- MESSAGES ----------
 
 @app.route('/messages')
 @login_required
@@ -592,8 +586,6 @@ def message_delete(msg_id):
     flash('Deleted', 'success')
     return redirect(url_for('messages'))
 
-# ---------- USERS ----------
-
 @app.route('/users')
 @login_required
 def users():
@@ -663,8 +655,6 @@ def change_password():
         flash('Password updated', 'success')
         return redirect(url_for('dashboard'))
     return render_template('change_password.html')
-
-# ==================== INIT ====================
 
 with app.app_context():
     db.create_all()
