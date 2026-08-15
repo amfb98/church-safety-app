@@ -138,6 +138,36 @@ def save_photo(file):
         return filename
     return None
 
+def ensure_upcoming_sundays():
+    """Automatically create the next 10 Sundays as Church Service events if they don't exist."""
+    today = date.today()
+    # Find the next Sunday (or today if it is Sunday)
+    days_until_sunday = (6 - today.weekday()) % 7
+    next_sunday = today + relativedelta(days=days_until_sunday)
+
+    for i in range(10):
+        sunday = next_sunday + relativedelta(weeks=i)
+        exists = ScheduleEvent.query.filter_by(
+            event_date=sunday,
+            event_type='Church Service',
+            title='Church Service'
+        ).first()
+        if not exists:
+            event = ScheduleEvent(
+                title='Church Service',
+                description='',
+                event_date=sunday,
+                start_time='09:30',
+                end_time='12:00',
+                location='1436 Deerfield Rd',
+                role='',
+                service='',
+                event_type='Church Service',
+                created_by=1  # system
+            )
+            db.session.add(event)
+    db.session.commit()
+
 @app.route('/')
 def index():
     if current_user.is_authenticated:
@@ -410,6 +440,9 @@ def poi_export_one(poi_id):
 @app.route('/schedule')
 @login_required
 def schedule():
+    # Auto-create upcoming Sundays
+    ensure_upcoming_sundays()
+
     year = request.args.get('year', type=int) or date.today().year
     month = request.args.get('month', type=int) or date.today().month
     if month < 1:
