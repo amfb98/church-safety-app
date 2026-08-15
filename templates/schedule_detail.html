@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }} - {{ event.event_date.strftime('%b %d, %Y') }}{% endblock %}
+{% block content %}
+
+<div class="mb-3">
+    <a href="{{ url_for('schedule') }}" class="btn btn-sm btn-outline-secondary">&laquo; Back to Calendar</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="mb-0">{{ event.title }}</h4>
+            <small class="text-muted">
+                {{ event.event_date.strftime('%A, %B %d, %Y') }}
+                {% if event.event_type %} · {{ event.event_type }}{% endif %}
+            </small>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if event.location %}
+            <p class="mb-1"><strong>Location:</strong> {{ event.location }}</p>
+        {% endif %}
+        {% if event.start_time or event.end_time %}
+            <p class="mb-0">
+                <strong>Time:</strong>
+                {% if event.start_time %}{{ event.start_time }}{% endif %}
+                {% if event.end_time %} – {{ event.end_time }}{% endif %}
+            </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Current Sign-ups -->
+<div class="card mb-4">
+    <div class="card-header">
+        <strong>Who's Signed Up ({{ event.signups|length }})</strong>
+    </div>
+    <div class="card-body">
+        {% if event.signups %}
+            <div class="list-group list-group-flush">
+                {% for s in event.signups %}
+                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div>
+                        <strong>{{ s.person_name }}</strong>
+                        {% if s.role %} – {{ s.role }}{% endif %}
+                        {% if s.service %} ({{ s.service }}){% endif %}
+                    </div>
+                    <form method="POST" action="{{ url_for('signup_delete', signup_id=s.id) }}" 
+                          onsubmit="return confirm('Remove this sign-up?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No one has signed up yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Sign-up Form -->
+<div class="card">
+    <div class="card-header">
+        <strong>Sign Up</strong>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('schedule_signup', event_id=event.id) }}">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Person</label>
+                    <select name="person_name" class="form-select" required>
+                        <option value="">-- Select Person --</option>
+                        {% for u in users %}
+                        <option value="{{ u.full_name }}">{{ u.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Role</label>
+                    <select name="role" class="form-select">
+                        <option value="">-- Select Role --</option>
+                        <option value="Roamer">Roamer</option>
+                        <option value="Sanctuary">Sanctuary</option>
+                        <option value="Lobby">Lobby</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Service</label>
+                    <select name="service" class="form-select">
+                        <option value="">-- Select Service --</option>
+                        <option value="First">First (9:30–10:30)</option>
+                        <option value="Second">Second (11:00–12:00)</option>
+                        <option value="Both">Both (9:30–12:00)</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Sign Up</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
