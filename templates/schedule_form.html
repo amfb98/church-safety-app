@@ -17,6 +17,16 @@
         </div>
 
         <div class="col-md-4">
+            <label class="form-label">Event Type</label>
+            <select name="event_type" class="form-select">
+                <option value="Church Service" {% if event and event.event_type == 'Church Service' %}selected{% endif %}>Church Service</option>
+                <option value="Special Event" {% if event and event.event_type == 'Special Event' %}selected{% endif %}>Special Event</option>
+                <option value="Meeting" {% if event and event.event_type == 'Meeting' %}selected{% endif %}>Meeting</option>
+                <option value="Other" {% if event and event.event_type == 'Other' %}selected{% endif %}>Other</option>
+            </select>
+        </div>
+
+        <div class="col-md-4">
             <label class="form-label">Role</label>
             <select name="role" class="form-select">
                 <option value="">-- Select Role --</option>
@@ -36,11 +46,6 @@
             </select>
         </div>
 
-        <div class="col-md-4">
-            <label class="form-label">Location</label>
-            <input type="text" name="location" class="form-control" value="{{ event.location if event else '' }}">
-        </div>
-
         <div class="col-md-6">
             <label class="form-label">Start Time</label>
             <input type="time" name="start_time" class="form-control" value="{{ event.start_time if event else '' }}">
@@ -48,6 +53,11 @@
         <div class="col-md-6">
             <label class="form-label">End Time</label>
             <input type="time" name="end_time" class="form-control" value="{{ event.end_time if event else '' }}">
+        </div>
+
+        <div class="col-12">
+            <label class="form-label">Location</label>
+            <input type="text" name="location" class="form-control" value="{{ event.location if event else '' }}">
         </div>
 
         <div class="col-12">
