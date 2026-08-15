@@ -85,6 +85,7 @@ class ScheduleEvent(db.Model):
     location = db.Column(db.String(120), default='')
     role = db.Column(db.String(50), default='')
     service = db.Column(db.String(20), default='')
+    event_type = db.Column(db.String(50), default='Church Service')
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -158,7 +159,7 @@ def logout():
 @login_required
 def dashboard():
     today = date.today()
-    upcoming = ScheduleEvent.query.filter(ScheduleEvent.event_date >= today).order_by(ScheduleEvent.event_date).limit(5).all()
+    upcoming = ScheduleEvent.query.filter(ScheduleEvent.event_date >= today).order_by(ScheduleEvent.event_date).limit(20).all()
     high_pois = PersonOfInterest.query.filter(PersonOfInterest.classification.in_(['high', 'critical'])).order_by(PersonOfInterest.updated_at.desc()).limit(5).all()
     recent_msgs = Message.query.order_by(Message.is_pinned.desc(), Message.created_at.desc()).limit(5).all()
     return render_template('dashboard.html', upcoming=upcoming, high_pois=high_pois, recent_msgs=recent_msgs)
@@ -468,6 +469,7 @@ def schedule_add():
             location=request.form.get('location', '').strip(),
             role=request.form.get('role', ''),
             service=request.form.get('service', ''),
+            event_type=request.form.get('event_type', 'Church Service'),
             created_by=current_user.id
         )
         db.session.add(event)
@@ -503,6 +505,7 @@ def schedule_edit(event_id):
         event.location = request.form.get('location', '').strip()
         event.role = request.form.get('role', '')
         event.service = request.form.get('service', '')
+        event.event_type = request.form.get('event_type', 'Church Service')
         db.session.commit()
         flash('Updated', 'success')
         return redirect(url_for('schedule', year=event.event_date.year, month=event.event_date.month))
