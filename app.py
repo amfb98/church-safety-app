@@ -288,6 +288,17 @@ def signup_delete(signup_id):
     flash('Sign-up removed', 'success')
     return redirect(url_for('schedule_detail', event_id=event_id))
 
+@app.route('/schedule/<int:event_id>/delete', methods=['POST'])
+@login_required
+def schedule_delete(event_id):
+    event = ScheduleEvent.query.get_or_404(event_id)
+    year = event.event_date.year
+    month = event.event_date.month
+    db.session.delete(event)
+    db.session.commit()
+    flash('Event deleted', 'success')
+    return redirect(url_for('schedule', year=year, month=month))
+
 @app.route('/schedule/add-event', methods=['GET', 'POST'])
 @login_required
 def schedule_add_event():
