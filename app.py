@@ -200,7 +200,11 @@ def logout():
 def dashboard():
     ensure_upcoming_sundays()
     today = date.today()
-    upcoming = ScheduleEvent.query.filter(ScheduleEvent.event_date >= today).order_by(ScheduleEvent.event_date).limit(15).all()
+   two_weeks = today + relativedelta(weeks=2)
+upcoming = ScheduleEvent.query.filter(
+    ScheduleEvent.event_date >= today,
+    ScheduleEvent.event_date <= two_weeks
+).order_by(ScheduleEvent.event_date).all()
     high_pois = PersonOfInterest.query.filter(PersonOfInterest.classification.in_(['high', 'critical'])).order_by(PersonOfInterest.updated_at.desc()).limit(5).all()
     recent_msgs = Message.query.order_by(Message.is_pinned.desc(), Message.created_at.desc()).limit(5).all()
     return render_template('dashboard.html', upcoming=upcoming, high_pois=high_pois, recent_msgs=recent_msgs)
