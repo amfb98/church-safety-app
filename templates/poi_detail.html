@@ -49,15 +49,15 @@
             </div>
         </div>
         {% endif %}
-
         <dl class="row">
             <dt class="col-sm-3">Last Seen</dt>
             <dd class="col-sm-9">{{ poi.last_seen.strftime('%Y-%m-%d') if poi.last_seen else '—' }}</dd>
             <dt class="col-sm-3">Added</dt>
-            <dd class="col-sm-9">{{ to_eastern(poi.created_at).strftime('%Y-%m-%d %I:%M %p') }} ET</dd>
+            <dd class="col-sm-9">{{ poi.created_at.strftime('%Y-%m-%d %I:%M %p') }} ET</dd>
             <dt class="col-sm-3">Updated</dt>
-            <dd class="col-sm-9">{{ to_eastern(poi.updated_at).strftime('%Y-%m-%d %I:%M %p') }} ET</dd>
+            <dd class="col-sm-9">{{ poi.updated_at.strftime('%Y-%m-%d %I:%M %p') }} ET</dd>
         </dl>
+
         <a href="{{ url_for('poi_list') }}" class="btn btn-secondary">Back to list</a>
     </div>
 </div>
