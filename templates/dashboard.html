@@ -1,10 +1,92 @@
 {% extends "base.html" %}
 {% block title %}Dashboard - CNAZ Safety{% endblock %}
 {% block content %}
-<h2 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard</h2>
-<div class="row g-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="mb-0"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+</div>
 
-    <!-- Upcoming Schedule -->
+<form class="mb-4" method="GET" action="{{ url_for('dashboard') }}">
+    <div class="input-group">
+        <input type="text" name="q" class="form-control" placeholder="Search POIs, bulletin posts, names..." value="{{ q or '' }}">
+        <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
+        {% if q %}
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Clear</a>
+        {% endif %}
+    </div>
+</form>
+
+{% if q %}
+<div class="card mb-4">
+    <div class="card-header" style="background-color: #c6f36b; color: #000;">
+        Search results for "{{ q }}"
+    </div>
+    <div class="card-body">
+        {% if search_pois or search_msgs %}
+            {% if search_pois %}
+            <h6 class="text-muted">Persons of Interest</h6>
+            <ul class="list-group list-group-flush mb-3">
+                {% for p in search_pois %}
+                <li class="list-group-item px-0">
+                    <a href="{{ url_for('poi_detail', poi_id=p.id) }}">{{ p.name }}</a>
+                    <span class="badge classification-{{ p.classification }}">{{ p.classification|upper }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% if search_msgs %}
+            <h6 class="text-muted">Bulletin Board</h6>
+            <ul class="list-group list-group-flush">
+                {% for m in search_msgs %}
+                <li class="list-group-item px-0">
+                    <a href="{{ url_for('message_detail', msg_id=m.id) }}">{{ m.title }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        {% else %}
+            <p class="text-muted mb-0">No results found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header" style="background-color: #c6f36b; color: #000;">
+                <i class="bi bi-chat-dots"></i> Group Chat
+            </div>
+            <div class="card-body">
+                {% if recent_chats %}
+                    <ul class="list-group list-group-flush">
+                    {% for m in recent_chats %}
+                        <li class="list-group-item px-0">
+                            <div class="d-flex align-items-center mb-1">
+                                {% if m.author and m.author.profile_photo %}
+                                    <img src="{{ url_for('static', filename='uploads/' + m.author.profile_photo) }}"
+                                         class="rounded-circle me-2"
+                                         style="width:26px;height:26px;object-fit:cover;">
+                                {% else %}
+                                    <span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center me-2"
+                                          style="width:26px;height:26px;font-size:12px;">
+                                        {{ (m.author.full_name[0] if m.author else '?') }}
+                                    </span>
+                                {% endif %}
+                                <div class="fw-semibold">{{ m.author.full_name if m.author else 'Unknown' }}</div>
+                            </div>
+                            <div class="small">{{ m.content[:90] }}{% if m.content|length > 90 %}…{% endif %}</div>
+                            <small class="text-muted">{{ to_eastern(m.created_at).strftime('%b %d, %I:%M %p') }}</small>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">No chat messages yet</p>
+                {% endif %}
+                <a href="{{ url_for('chat') }}" class="btn btn-sm btn-outline-success mt-3">Open Group Chat</a>
+            </div>
+        </div>
+    </div>
+
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-header" style="background-color: #c6f36b; color: #000;">
@@ -19,7 +101,18 @@
                             </div>
                             {% if e.signups %}
                                 {% for s in e.signups %}
-                                    <div class="small" style="color: #ddd;">
+                                    <div class="small d-flex align-items-center" style="color: #ddd;">
+                                        {% set person = users_by_name.get(s.person_name) %}
+                                        {% if person and person.profile_photo %}
+                                            <img src="{{ url_for('static', filename='uploads/' + person.profile_photo) }}"
+                                                 class="rounded-circle me-1"
+                                                 style="width:18px;height:18px;object-fit:cover;">
+                                        {% else %}
+                                            <span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center me-1"
+                                                  style="width:18px;height:18px;font-size:10px;">
+                                                {{ s.person_name[0] if s.person_name else '?' }}
+                                            </span>
+                                        {% endif %}
                                         {{ s.person_name }}
                                         {% if s.role %} – {{ s.role }}{% endif %}
                                         {% if s.service %} ({{ s.service }}){% endif %}
@@ -38,10 +131,9 @@
         </div>
     </div>
 
-    <!-- High Priority POIs -->
     <div class="col-md-4">
         <div class="card h-100">
-            <div class="card-header bg-danger text-white">
+            <div class="card-header" style="background-color: #c6f36b; color: #000;">
                 <i class="bi bi-exclamation-triangle"></i> High Priority POIs
             </div>
             <div class="card-body">
@@ -68,31 +160,5 @@
             </div>
         </div>
     </div>
-
-    <!-- Recent Messages -->
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-header bg-success text-white">
-                <i class="bi bi-chat-left-text"></i> Recent Messages
-            </div>
-            <div class="card-body">
-                {% if recent_msgs %}
-                    <ul class="list-group list-group-flush">
-                    {% for m in recent_msgs %}
-                        <li class="list-group-item px-0">
-                            {% if m.is_pinned %}<i class="bi bi-pin-angle-fill text-warning"></i> {% endif %}
-                            <a href="{{ url_for('message_detail', msg_id=m.id) }}">{{ m.title }}</a>
-                            <br><small class="text-muted">{{ m.author.full_name }} · {{ to_eastern(m.created_at).strftime('%b %d') }}</small>
-                        </li>
-                    {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="text-muted mb-0">No messages yet</p>
-                {% endif %}
-                <a href="{{ url_for('messages') }}" class="btn btn-sm btn-outline-success mt-3">Message Board</a>
-            </div>
-        </div>
-    </div>
-
 </div>
 {% endblock %}
