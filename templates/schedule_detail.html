@@ -1,106 +1,92 @@
 {% extends "base.html" %}
-{% block title %}{{ event.title }} - {{ event.event_date.strftime('%b %d, %Y') }}{% endblock %}
+{% block title %}{{ event.title }} - {{ event.event_date }}{% endblock %}
 {% block content %}
-
-<div class="mb-3 d-flex justify-content-between align-items-center">
+<div class="mb-3">
     <a href="{{ url_for('schedule') }}" class="btn btn-sm btn-outline-secondary">&laquo; Back to Calendar</a>
-    
-    <form method="POST" action="{{ url_for('schedule_delete', event_id=event.id) }}" 
-          onsubmit="return confirm('Are you sure you want to delete this entire event and all sign-ups?');">
-        <button type="submit" class="btn btn-sm btn-outline-danger">Delete Event</button>
-    </form>
 </div>
 
-<!-- Event Header -->
-<div class="card mb-4">
-    <div class="card-header" style="background-color: #c6f36b; color: #000;">
-        <h4 class="mb-0" style="color: #000; font-weight: 600;">{{ event.title }}</h4>
-        <small style="color: #222;">
-            {{ event.event_date.strftime('%A, %B %d, %Y') }}
-            {% if event.event_type %} · {{ event.event_type }}{% endif %}
-        </small>
+<!-- Event Header Card -->
+<div class="card mb-3 border-0 overflow-hidden">
+    <div class="card-header">
+        <h4 class="mb-0">{{ event.title }}</h4>
+        <div style="font-size: 0.95rem;">
+            {{ event.event_date.strftime('%A, %B %d, %Y') }} · {{ event.event_type }}
+        </div>
     </div>
     <div class="card-body">
-        {% if event.location %}
-            <p class="mb-1"><strong>Location:</strong> {{ event.location }}</p>
-        {% endif %}
-        {% if event.start_time or event.end_time %}
-            <p class="mb-0">
-                <strong>Time:</strong>
-                {% if event.start_time %}{{ event.start_time }}{% endif %}
-                {% if event.end_time %} – {{ event.end_time }}{% endif %}
-            </p>
+        {% if event.location %}<p class="mb-1"><strong>Location:</strong> {{ event.location }}</p>{% endif %}
+        {% if event.start_time %}
+        <p class="mb-0"><strong>Time:</strong> {{ event.start_time }}{% if event.end_time %} – {{ event.end_time }}{% endif %}</p>
         {% endif %}
     </div>
 </div>
 
 <!-- Who's Signed Up -->
-<div class="card mb-4">
-    <div class="card-header" style="background-color: #c6f36b; color: #000;">
-        <span style="color: #000; font-weight: 500;">Who's Signed Up ({{ event.signups|length }})</span>
+<div class="card mb-3 border-0 overflow-hidden">
+    <div class="card-header">
+        <h5 class="mb-0">Who's Signed Up ({{ event.signups|length }})</h5>
     </div>
-    <div class="card-body">
+    <div class="card-body p-0">
         {% if event.signups %}
-            <div class="list-group list-group-flush">
-                {% for s in event.signups %}
-                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                    <div>
-                        <strong>{{ s.person_name }}</strong>
-                        {% if s.role %} – {{ s.role }}{% endif %}
-                        {% if s.service %} ({{ s.service }}){% endif %}
-                    </div>
-                    <form method="POST" action="{{ url_for('signup_delete', signup_id=s.id) }}" 
-                          onsubmit="return confirm('Remove this sign-up?');">
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
-                    </form>
+            {% for s in event.signups %}
+            <div class="d-flex justify-content-between align-items-center px-3 py-3" style="border-bottom: 1px solid #333;">
+                <div>
+                    <strong>{{ s.person_name }}</strong> – {{ s.role or '—' }}
+                    {% if s.service %}({{ s.service }}){% endif %}
                 </div>
-                {% endfor %}
+                <form method="POST" action="{{ url_for('schedule_signup_delete', signup_id=s.id) }}" onsubmit="return confirm('Remove this person?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                </form>
             </div>
+            {% endfor %}
         {% else %}
-            <p class="text-muted mb-0">No one has signed up yet.</p>
+            <div class="px-3 py-3 text-muted">No one signed up yet.</div>
         {% endif %}
     </div>
 </div>
 
 <!-- Sign Up Form -->
-<div class="card">
-    <div class="card-header" style="background-color: #c6f36b; color: #000;">
-        <span style="color: #000; font-weight: 500;">Sign Up</span>
+<div class="card border-0 overflow-hidden">
+    <div class="card-header">
+        <h5 class="mb-0">Sign Up</h5>
     </div>
     <div class="card-body">
         <form method="POST" action="{{ url_for('schedule_signup', event_id=event.id) }}">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Person</label>
-                    <select name="person_name" class="form-select" required>
-                        <option value="">-- Select Person --</option>
-                        {% for u in users %}
-                        <option value="{{ u.full_name }}">{{ u.full_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Role</label>
-                    <select name="role" class="form-select">
-                        <option value="">-- Select Role --</option>
-                        <option value="Roamer">Roamer</option>
-                        <option value="Sanctuary">Sanctuary</option>
-                        <option value="Lobby">Lobby</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Service</label>
-                    <select name="service" class="form-select">
-                        <option value="">-- Select Service --</option>
-                        <option value="First">First (9:30–10:30)</option>
-                        <option value="Second">Second (11:00–12:00)</option>
-                        <option value="Both">Both (9:30–12:00)</option>
-                    </select>
-                </div>
+            <div class="mb-3">
+                <label class="form-label">Person</label>
+                <select name="person_name" class="form-select" required>
+                    <option value="">-- Select Person --</option>
+                    {% for u in safety_users %}
+                    <option value="{{ u.full_name }}">{{ u.full_name }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            <button type="submit" class="btn btn-primary mt-3">Sign Up</button>
+            <div class="mb-3">
+                <label class="form-label">Role</label>
+                <select name="role" class="form-select">
+                    <option value="">-- Select --</option>
+                    <option value="Roamer">Roamer</option>
+                    <option value="Sanctuary">Sanctuary</option>
+                    <option value="Lobby">Lobby</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Service</label>
+                <select name="service" class="form-select">
+                    <option value="">-- Select --</option>
+                    <option value="First">First</option>
+                    <option value="Second">Second</option>
+                    <option value="Both">Both</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Add</button>
         </form>
     </div>
 </div>
 
+<div class="mt-4 text-center">
+    <form method="POST" action="{{ url_for('schedule_delete', event_id=event.id) }}" onsubmit="return confirm('Delete this event?');">
+        <button type="submit" class="btn btn-outline-danger btn-sm">Delete Event</button>
+    </form>
+</div>
 {% endblock %}
