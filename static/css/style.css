@@ -71,6 +71,17 @@ h1, h2, h3, h4, h5, h6 {
     color: #ffffff !important;
 }
 
+/* Force black text on green headers */
+.card-header,
+.card-header h1,
+.card-header h2,
+.card-header h3,
+.card-header h4,
+.card-header h5,
+.card-header h6 {
+    color: #000000 !important;
+}
+
 .form-control, .form-select {
     background-color: #2a2a2a !important;
     border-color: #444;
@@ -137,6 +148,7 @@ h1, h2, h3, h4, h5, h6 {
     background-color: #2ecc71 !important;
     color: #000 !important;
 }
+
 /* Classification dropdown & icons */
 .form-select,
 select {
@@ -173,6 +185,7 @@ input[type="date"] + .bi,
 .form-label, label {
     color: #ffffff !important;
 }
+
 /* Force calendar cells back to dark */
 .calendar-table,
 .calendar-table td,
@@ -186,6 +199,7 @@ input[type="date"] + .bi,
 .calendar-day strong {
     color: #ffffff !important;
 }
+
 /* Make Delete button clearer */
 .btn-outline-danger, 
 .btn-danger {
@@ -198,6 +212,7 @@ input[type="date"] + .bi,
     background-color: #ff6b6b !important;
     color: #000 !important;
 }
+
 /* POI names - make them white */
 .poi-card a,
 .poi-name,
@@ -252,6 +267,7 @@ h5 a, h6 a {
     border-radius: 6px;
     font-size: 0.75rem;
 }
+
 /* Force black text on green event blocks */
 .event-pill,
 .event-pill a,
