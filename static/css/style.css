@@ -252,3 +252,14 @@ h5 a, h6 a {
     border-radius: 6px;
     font-size: 0.75rem;
 }
+/* Force black text on green event blocks */
+.event-pill,
+.event-pill a,
+.event-pill small,
+.church-service,
+.church-service a,
+.signed-up-list,
+.signed-up-list * {
+    color: #000 !important;
+    font-weight: normal !important;
+}
