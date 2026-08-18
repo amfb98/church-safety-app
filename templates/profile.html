@@ -48,28 +48,45 @@
 
     <!-- Right side: Records -->
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-folder"></i> Records</span>
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="bi bi-folder"></i> Personal Records
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    Use this section to store important files for this person (certificates, training documents, notes, photos, etc.).
+                </p>
+
                 {% if current_user.id == user.id or current_user.role == 'admin' or current_user.can_view_all_records %}
-                <form method="POST" action="{{ url_for('records_upload', user_id=user.id) }}" enctype="multipart/form-data" class="d-flex gap-2">
-                    <input type="text" name="folder" class="form-control form-control-sm" placeholder="Folder" style="width:120px;" value="General">
-                    <input type="file" name="file" class="form-control form-control-sm" required>
-                    <button type="submit" class="btn btn-sm btn-primary">Upload</button>
+                <!-- Upload form - mobile friendly -->
+                <form method="POST" action="{{ url_for('records_upload', user_id=user.id) }}" enctype="multipart/form-data" class="mb-4">
+                    <div class="row g-2">
+                        <div class="col-12 col-sm-4">
+                            <label class="form-label small">Folder Name</label>
+                            <input type="text" name="folder" class="form-control" placeholder="e.g. Training, Certs" value="General">
+                        </div>
+                        <div class="col-12 col-sm-5">
+                            <label class="form-label small">Choose File</label>
+                            <input type="file" name="file" class="form-control" required>
+                        </div>
+                        <div class="col-12 col-sm-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Upload</button>
+                        </div>
+                    </div>
                 </form>
                 {% endif %}
-            </div>
-            <div class="card-body p-0">
+
+                <!-- File list -->
                 {% if files %}
                     <ul class="list-group list-group-flush">
                     {% for f in files %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                             <div>
-                                <a href="{{ url_for('static', filename='uploads/' + f.filename) }}" target="_blank">
+                                <a href="{{ url_for('static', filename='uploads/' + f.filename) }}" target="_blank" class="fw-semibold">
                                     {{ f.original_name or f.filename }}
                                 </a>
                                 <br>
-                                <small class="text-muted">{{ f.folder }} · {{ f.uploaded_at.strftime('%Y-%m-%d') if f.uploaded_at else '' }}</small>
+                                <small class="text-muted">{{ f.folder }} · {{ f.uploaded_at.strftime('%b %d, %Y') if f.uploaded_at else '' }}</small>
                             </div>
                             {% if current_user.id == user.id or current_user.role == 'admin' %}
                             <form method="POST" action="{{ url_for('records_delete', file_id=f.id) }}" onsubmit="return confirm('Delete this file?');">
@@ -80,17 +97,17 @@
                     {% endfor %}
                     </ul>
                 {% else %}
-                    <div class="p-3 text-muted">No files uploaded yet.</div>
+                    <div class="text-muted text-center py-3">
+                        No files uploaded yet.
+                    </div>
                 {% endif %}
             </div>
         </div>
 
         {% if current_user.role == 'admin' or current_user.can_view_all_records %}
-        <div class="mt-3">
-            <a href="{{ url_for('records') }}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-people"></i> View All Users’ Records
-            </a>
-        </div>
+        <a href="{{ url_for('records') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-people"></i> View All Users’ Records
+        </a>
         {% endif %}
     </div>
 </div>
