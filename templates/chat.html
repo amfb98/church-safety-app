@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Group Chat{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0"><i class="bi bi-chat-dots"></i> Group Chat</h2>
+    <span class="text-muted small">Updates automatically</span>
+</div>
+
+<div id="chat-box" class="card mb-3" style="height: 55vh; overflow-y: auto;">
+    <div class="card-body" id="chat-messages">
+        {% for m in messages %}
+        <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="fw-semibold d-flex align-items-center" style="color:#c6f36b;">
+                    {% set person = users_by_name.get(m.author_name) %}
+                    {% if person and person.profile_photo %}
+                        <img src="{{ url_for('static', filename='uploads/' + person.profile_photo) }}"
+                             class="rounded-circle me-2"
+                             style="width:28px;height:28px;object-fit:cover;">
+                    {% else %}
+                        <span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center me-2"
+                              style="width:28px;height:28px;font-size:13px;">
+                            {{ m.author_name[0] if m.author_name else '?' }}
+                        </span>
+                    {% endif %}
+                    {{ m.author_name }}
+                </div>
+                {% if m.author_id == current_user.id or current_user.role == 'admin' %}
+                <div class="d-flex gap-1">
+                    <a href="{{ url_for('chat_edit', msg_id=m.id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <form method="POST" action="{{ url_for('chat_delete', msg_id=m.id) }}" onsubmit="return confirm('Delete this message?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            <div style="white-space: pre-wrap; margin-left: 36px;">{{ m.content }}</div>
+            <div class="small text-muted" style="margin-left: 36px;">
+                {{ m.created_at.strftime('%Y-%m-%d %H:%M') if m.created_at else '' }}
+            </div>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No messages yet. Start the conversation.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<form method="POST" action="{{ url_for('chat_send') }}" class="card card-body">
+    <div class="row g-2">
+        <div class="col-md-10">
+            <textarea name="content" class="form-control" rows="2" placeholder="Type a message..." required></textarea>
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-primary">Send</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

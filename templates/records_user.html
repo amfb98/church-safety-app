@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Records - {{ user.full_name }}{% endblock %}
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('records') }}" class="btn btn-sm btn-outline-secondary">&laquo; Back to Records</a>
+</div>
+
+<h2 class="mb-4"><i class="bi bi-folder"></i> {{ user.full_name }}</h2>
+
+<!-- Upload Form -->
+<div class="card mb-4">
+    <div class="card-header" style="background-color:#c6f36b; color:#000;">Upload File</div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('records_upload', user_id=user.id) }}" enctype="multipart/form-data" class="row g-2">
+            <div class="col-md-5">
+                <input type="file" name="file" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="folder" class="form-control" placeholder="Folder name (optional)" value="General">
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Upload</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Files List -->
+{% if files %}
+<div class="card">
+    <div class="card-header">Files</div>
+    <ul class="list-group list-group-flush">
+        {% for f in files %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <a href="{{ url_for('static', filename='uploads/' + f.filename) }}" target="_blank">
+                    <i class="bi bi-paperclip"></i> {{ f.original_name or f.filename }}
+                </a>
+                <small class="text-muted ms-2">({{ f.folder }})</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <small class="text-muted">{{ f.uploaded_at.strftime('%Y-%m-%d') if f.uploaded_at else '' }}</small>
+                <form method="POST" action="{{ url_for('records_delete', file_id=f.id) }}" onsubmit="return confirm('Delete this file?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% else %}
+<div class="alert alert-info">No files uploaded yet.</div>
+{% endif %}
+{% endblock %}

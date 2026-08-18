@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}{{ user.full_name }} - Profile{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-person-circle"></i> {{ user.full_name }}</h2>
+    {% if current_user.id == user.id or current_user.role == 'admin' %}
+    <a href="{{ url_for('profile_edit', user_id=user.id) }}" class="btn btn-outline-primary">
+        <i class="bi bi-pencil"></i> Edit Profile
+    </a>
+    {% endif %}
+</div>
+
+<div class="row">
+    <!-- Left side: Photo + Info -->
+    <div class="col-md-4 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                {% if user.profile_photo %}
+                <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}"
+                     class="rounded-circle mb-3" style="width:140px;height:140px;object-fit:cover;">
+                {% else %}
+                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                     style="width:140px;height:140px;">
+                    <i class="bi bi-person text-white display-4"></i>
+                </div>
+                {% endif %}
+
+                <h4>{{ user.full_name }}</h4>
+                <p class="text-muted mb-1">@{{ user.username }}</p>
+                <p class="mb-0">
+                    <span class="badge bg-secondary">{{ user.role|title }}</span>
+                    {% if user.is_safety_team %}
+                    <span class="badge" style="background:#c6f36b;color:#000;">Safety Team</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        {% if current_user.id == user.id %}
+        <div class="d-grid gap-2 mt-3">
+            <a href="{{ url_for('change_password') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-key"></i> Change Password
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Right side: Records -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-folder"></i> Records</span>
+                {% if current_user.id == user.id or current_user.role == 'admin' or current_user.can_view_all_records %}
+                <form method="POST" action="{{ url_for('records_upload', user_id=user.id) }}" enctype="multipart/form-data" class="d-flex gap-2">
+                    <input type="text" name="folder" class="form-control form-control-sm" placeholder="Folder" style="width:120px;" value="General">
+                    <input type="file" name="file" class="form-control form-control-sm" required>
+                    <button type="submit" class="btn btn-sm btn-primary">Upload</button>
+                </form>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                {% if files %}
+                    <ul class="list-group list-group-flush">
+                    {% for f in files %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="{{ url_for('static', filename='uploads/' + f.filename) }}" target="_blank">
+                                    {{ f.original_name or f.filename }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ f.folder }} · {{ f.uploaded_at.strftime('%Y-%m-%d') if f.uploaded_at else '' }}</small>
+                            </div>
+                            {% if current_user.id == user.id or current_user.role == 'admin' %}
+                            <form method="POST" action="{{ url_for('records_delete', file_id=f.id) }}" onsubmit="return confirm('Delete this file?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="p-3 text-muted">No files uploaded yet.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if current_user.role == 'admin' or current_user.can_view_all_records %}
+        <div class="mt-3">
+            <a href="{{ url_for('records') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-people"></i> View All Users’ Records
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
