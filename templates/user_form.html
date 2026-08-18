@@ -1,29 +1,32 @@
 {% extends "base.html" %}
 {% block title %}{{ 'Edit User' if user else 'Add User' }}{% endblock %}
 {% block content %}
-<h2 class="mb-4">{{ 'Edit User' if user else 'Add User' }}</h2>
+<div class="mb-3">
+    <a href="{{ url_for('users') }}" class="btn btn-sm btn-outline-secondary">&laquo; Back to Users</a>
+</div>
 
-<form method="POST" class="card card-body">
+<h2 class="mb-4">{{ 'Edit User' if user else 'Add New User' }}</h2>
+
+<form method="POST" class="card card-body shadow-sm">
     <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Username *</label>
+            <input type="text" name="username" class="form-control" required
+                   value="{{ user.username if user else '' }}"
+                   {% if user %}readonly{% endif %}>
+            {% if user %}<small class="text-muted">Username cannot be changed here</small>{% endif %}
+        </div>
+
         <div class="col-md-6">
             <label class="form-label">Full Name *</label>
             <input type="text" name="full_name" class="form-control" required
                    value="{{ user.full_name if user else '' }}">
         </div>
 
-        {% if not user %}
         <div class="col-md-6">
-            <label class="form-label">Username *</label>
-            <input type="text" name="username" class="form-control" required
-                   placeholder="lowercase, no spaces">
+            <label class="form-label">Password {% if not user %}*{% else %}(leave blank to keep current){% endif %}</label>
+            <input type="password" name="password" class="form-control" {% if not user %}required{% endif %}>
         </div>
-        {% else %}
-        <div class="col-md-6">
-            <label class="form-label">Username</label>
-            <input type="text" class="form-control" value="{{ user.username }}" disabled>
-            <div class="form-text">Username cannot be changed</div>
-        </div>
-        {% endif %}
 
         <div class="col-md-6">
             <label class="form-label">Role</label>
@@ -34,22 +37,23 @@
         </div>
 
         <div class="col-md-6">
-            <label class="form-label">On Safety Team?</label>
-            <div class="form-check mt-2">
+            <div class="form-check mt-4">
                 <input class="form-check-input" type="checkbox" name="is_safety_team" id="is_safety_team"
                        {% if not user or user.is_safety_team %}checked{% endif %}>
                 <label class="form-check-label" for="is_safety_team">
-                    Yes – can be assigned roles on the schedule
+                    Safety Team Member (can be assigned roles)
                 </label>
             </div>
         </div>
 
         <div class="col-md-6">
-            <label class="form-label">
-                {% if user %}New Password (leave blank to keep current){% else %}Password *{% endif %}
-            </label>
-            <input type="password" name="password" class="form-control"
-                   {% if not user %}required{% endif %}>
+            <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" name="can_view_all_records" id="can_view_all_records"
+                       {% if user and user.can_view_all_records %}checked{% endif %}>
+                <label class="form-check-label" for="can_view_all_records">
+                    Can view everyone’s Records
+                </label>
+            </div>
         </div>
     </div>
 
