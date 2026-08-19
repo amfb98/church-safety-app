@@ -6,7 +6,7 @@
         <div class="card">
             <div class="card-header">{{ 'Edit Post' if msg else 'New Post' }}</div>
             <div class="card-body">
-                <form method="POST">
+                <form method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label class="form-label">Title</label>
                         <input type="text" name="title" class="form-control" required 
@@ -16,12 +16,25 @@
                         <label class="form-label">Message</label>
                         <textarea name="content" class="form-control" rows="6" required>{{ msg.content if msg else '' }}</textarea>
                     </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Attachment (optional)</label>
+                        <input type="file" name="attachment" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp,.txt,.xls,.xlsx">
+                        {% if msg and msg.attachment_filename %}
+                        <div class="form-text mt-1">
+                            Current file: <strong>{{ msg.attachment_filename }}</strong>
+                            <br><small class="text-muted">Upload a new file only if you want to replace it.</small>
+                        </div>
+                        {% endif %}
+                    </div>
+
                     {% if not msg and current_user.role == 'admin' %}
                     <div class="mb-3 form-check">
                         <input type="checkbox" name="is_pinned" class="form-check-input" id="pin">
                         <label class="form-check-label" for="pin">Pin this post</label>
                     </div>
                     {% endif %}
+
                     <button type="submit" class="btn btn-primary">{{ 'Save Changes' if msg else 'Post' }}</button>
                     <a href="{{ url_for('messages') if not msg else url_for('message_detail', msg_id=msg.id) }}" class="btn btn-secondary">Cancel</a>
                 </form>
