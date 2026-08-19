@@ -7,7 +7,7 @@
 
 <form class="mb-4" method="GET" action="{{ url_for('dashboard') }}">
     <div class="input-group">
-        <input type="text" name="q" class="form-control" placeholder="Search POIs, bulletin posts, names..." value="{{ q or '' }}">
+        <input type="text" name="q" class="form-control" placeholder="Search..." value="{{ q or '' }}">
         <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
         {% if q %}
         <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Clear</a>
@@ -34,7 +34,7 @@
             </ul>
             {% endif %}
             {% if search_msgs %}
-            <h6 class="text-muted">Bulletin Board</h6>
+            <h6 class="text-muted">Resource Center</h6>
             <ul class="list-group list-group-flush">
                 {% for m in search_msgs %}
                 <li class="list-group-item px-0">
