@@ -51,6 +51,7 @@
 {% endif %}
 
 <div class="row g-4">
+    <!-- Group Chat -->
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-header" style="background-color: #c6f36b; color: #000;">
@@ -60,4 +61,107 @@
                 {% if recent_chats %}
                     <ul class="list-group list-group-flush">
                     {% for m in recent_chats %}
-                        <li
+                        <li class="list-group-item px-0">
+                            <div class="d-flex align-items-center mb-1">
+                                {% if m.author and m.author.profile_photo %}
+                                    <img src="{{ url_for('static', filename='uploads/' + m.author.profile_photo) }}"
+                                         class="rounded-circle me-2"
+                                         style="width:26px;height:26px;object-fit:cover;">
+                                {% else %}
+                                    <span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center me-2"
+                                          style="width:26px;height:26px;font-size:12px;">
+                                        {{ (m.author.full_name[0] if m.author else '?') }}
+                                    </span>
+                                {% endif %}
+                                <div class="fw-semibold">{{ m.author.full_name if m.author else 'Unknown' }}</div>
+                            </div>
+                            <div class="small">{{ m.content[:90] }}{% if m.content|length > 90 %}…{% endif %}</div>
+                            <small class="text-muted">{{ to_eastern(m.created_at).strftime('%b %d, %I:%M %p') }}</small>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">No chat messages yet</p>
+                {% endif %}
+                <a href="{{ url_for('chat') }}" class="btn btn-sm btn-outline-success mt-3">Open Group Chat</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Schedule -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header" style="background-color: #c6f36b; color: #000;">
+                <i class="bi bi-calendar-event"></i> Upcoming Schedule
+            </div>
+            <div class="card-body">
+                {% if upcoming %}
+                    {% for e in upcoming %}
+                        <div class="mb-3">
+                            <div class="fw-bold" style="color: #c6f36b;">
+                                {{ e.event_date.strftime('%a, %b %d') }} · {{ e.title }}
+                            </div>
+                            {% if e.signups %}
+                                {% for s in e.signups %}
+                                    <div class="small d-flex align-items-center" style="color: #ddd;">
+                                        {% set person = users_by_name.get(s.person_name) %}
+                                        {% if person and person.profile_photo %}
+                                            <img src="{{ url_for('static', filename='uploads/' + person.profile_photo) }}"
+                                                 class="rounded-circle me-1"
+                                                 style="width:18px;height:18px;object-fit:cover;">
+                                        {% else %}
+                                            <span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center me-1"
+                                                  style="width:18px;height:18px;font-size:10px;">
+                                                {{ s.person_name[0] if s.person_name else '?' }}
+                                            </span>
+                                        {% endif %}
+                                        {{ s.person_name }}
+                                        {% if s.role %} – {{ s.role }}{% endif %}
+                                        {% if s.service %} ({{ s.service }}){% endif %}
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="small text-muted">No one signed up yet</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No upcoming events</p>
+                {% endif %}
+                <a href="{{ url_for('schedule') }}" class="btn btn-sm btn-outline-success mt-2">View Calendar</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- High Priority POIs -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header" style="background-color: #c6f36b; color: #000;">
+                <i class="bi bi-exclamation-triangle"></i> High Priority POIs
+            </div>
+            <div class="card-body">
+                {% if high_pois %}
+                    <ul class="list-group list-group-flush">
+                    {% for p in high_pois %}
+                        <li class="list-group-item px-0 d-flex align-items-center">
+                            {% if p.photo_filename %}
+                            <img src="{{ url_for('static', filename='uploads/' + p.photo_filename) }}" class="rounded me-2" style="width:40px;height:40px;object-fit:cover;">
+                            {% else %}
+                            <div class="bg-secondary rounded me-2 d-flex align-items-center justify-content-center" style="width:40px;height:40px;"><i class="bi bi-person text-white"></i></div>
+                            {% endif %}
+                            <div>
+                                <a href="{{ url_for('poi_detail', poi_id=p.id) }}">{{ p.name }}</a>
+                                <span class="badge classification-{{ p.classification }}">{{ p.classification|upper }}</span>
+                            </div>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">None</p>
+                {% endif %}
+                <a href="{{ url_for('poi_list') }}" class="btn btn-sm btn-outline-danger mt-3">View All POIs</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
