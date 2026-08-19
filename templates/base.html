@@ -38,7 +38,7 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('schedule') }}"><i class="bi bi-calendar3"></i> Schedule</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('poi_list') }}"><i class="bi bi-person-badge"></i> Persons of Interest</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('messages') }}"><i class="bi bi-pin-angle"></i> Bulletin Board</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('messages') }}"><i class="bi bi-folder2-open"></i> Resource Center</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('chat') }}"><i class="bi bi-chat-dots"></i> Group Chat</a></li>
                     {% if current_user.role == 'admin' %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('users') }}"><i class="bi bi-people"></i> Users</a></li>
