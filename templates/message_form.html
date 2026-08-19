@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}{{ 'Edit Post' if msg else 'New Post' }}{% endblock %}
+{% block title %}{{ 'Edit Resource' if msg else 'New Resource' }}{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header">{{ 'Edit Post' if msg else 'New Post' }}</div>
+            <div class="card-header">{{ 'Edit Resource' if msg else 'New Resource' }}</div>
             <div class="card-body">
                 <form method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
@@ -13,7 +13,7 @@
                                value="{{ msg.title if msg else '' }}">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Message</label>
+                        <label class="form-label">Description / Notes</label>
                         <textarea name="content" class="form-control" rows="6" required>{{ msg.content if msg else '' }}</textarea>
                     </div>
 
@@ -31,11 +31,11 @@
                     {% if not msg and current_user.role == 'admin' %}
                     <div class="mb-3 form-check">
                         <input type="checkbox" name="is_pinned" class="form-check-input" id="pin">
-                        <label class="form-check-label" for="pin">Pin this post</label>
+                        <label class="form-check-label" for="pin">Pin this resource</label>
                     </div>
                     {% endif %}
 
-                    <button type="submit" class="btn btn-primary">{{ 'Save Changes' if msg else 'Post' }}</button>
+                    <button type="submit" class="btn btn-primary">{{ 'Save Changes' if msg else 'Post Resource' }}</button>
                     <a href="{{ url_for('messages') if not msg else url_for('message_detail', msg_id=msg.id) }}" class="btn btn-secondary">Cancel</a>
                 </form>
             </div>
