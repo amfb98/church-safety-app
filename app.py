@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, send_from_directory, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -14,6 +14,8 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RL
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 import pytz
+from pywebpush import webpush, WebPushException
+import json
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback-key-change-me')
@@ -51,7 +53,7 @@ class User(UserMixin, db.Model):
     full_name = db.Column(db.String(120), nullable=False)
     role = db.Column(db.String(20), default='member')
     is_safety_team = db.Column(db.Boolean, default=True)
-    can_view_all_records = db.Column(db.Boolean, default=False)   # ← NEW
+    can_view_all_records = db.Column(db.Boolean, default=False)
     profile_photo = db.Column(db.String(200), default=None)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -135,6 +137,15 @@ class RecordFile(db.Model):
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
     user = db.relationship('User', backref='records')
 
+class PushSubscription(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    endpoint = db.Column(db.Text, nullable=False)
+    p256dh = db.Column(db.Text, nullable=False)
+    auth = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='push_subscriptions')
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -211,39 +222,27 @@ def change_password():
 @login_required
 def profile(user_id):
     user = User.query.get_or_404(user_id)
-
-    # Only allow viewing your own profile, or admins can view anyone
     if current_user.id != user.id and current_user.role != 'admin':
         flash('Not allowed', 'danger')
         return redirect(url_for('dashboard'))
-
-    # Show records only for the person being viewed (or all if permission)
     files = RecordFile.query.filter_by(user_id=user.id).order_by(RecordFile.uploaded_at.desc()).all()
-
     return render_template('profile.html', user=user, files=files)
-
 
 @app.route('/profile/<int:user_id>/edit', methods=['GET', 'POST'])
 @login_required
 def profile_edit(user_id):
     user = User.query.get_or_404(user_id)
-
     if current_user.id != user.id and current_user.role != 'admin':
         flash('Not allowed', 'danger')
         return redirect(url_for('dashboard'))
-
     if request.method == 'POST':
-        # Allow changing username
         new_username = request.form.get('username', '').strip()
         if new_username and new_username != user.username:
             if User.query.filter_by(username=new_username).first():
                 flash('That username is already taken', 'danger')
                 return redirect(url_for('profile_edit', user_id=user.id))
             user.username = new_username
-
         user.full_name = request.form.get('full_name', user.full_name).strip()
-
-        # Profile photo
         if 'photo' in request.files:
             file = request.files['photo']
             if file and file.filename and allowed_file(file.filename):
@@ -258,11 +257,9 @@ def profile_edit(user_id):
                 img.thumbnail((400, 400))
                 img.save(filepath)
                 user.profile_photo = filename
-
         db.session.commit()
         flash('Profile updated', 'success')
         return redirect(url_for('profile', user_id=user.id))
-
     return render_template('profile_edit.html', user=user)
 
 # ==================== DASHBOARD ====================
@@ -447,11 +444,9 @@ def user_add():
         role = request.form.get('role', 'member')
         is_safety_team = 'is_safety_team' in request.form
         can_view_all_records = 'can_view_all_records' in request.form
-
         if User.query.filter_by(username=username).first():
             flash('Username already exists', 'danger')
             return redirect(url_for('user_add'))
-
         user = User(
             username=username,
             full_name=full_name,
@@ -466,7 +461,6 @@ def user_add():
         return redirect(url_for('users'))
     return render_template('user_form.html', user=None)
 
-
 @app.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
 @login_required
 def user_edit(user_id):
@@ -479,11 +473,9 @@ def user_edit(user_id):
         user.role = request.form.get('role', user.role)
         user.is_safety_team = 'is_safety_team' in request.form
         user.can_view_all_records = 'can_view_all_records' in request.form
-
         new_password = request.form.get('password', '').strip()
         if new_password:
             user.set_password(new_password)
-
         db.session.commit()
         flash('User updated', 'success')
         return redirect(url_for('users'))
@@ -508,25 +500,18 @@ def user_delete(user_id):
 @app.route('/records')
 @login_required
 def records():
-    # Only people with permission can see the full list
     if not (current_user.role == 'admin' or current_user.can_view_all_records):
-        # Regular users just go to their own profile/records
         return redirect(url_for('profile', user_id=current_user.id))
-
     users = User.query.order_by(User.full_name).all()
     return render_template('records.html', users=users)
-
 
 @app.route('/records/<int:user_id>')
 @login_required
 def records_user(user_id):
     user = User.query.get_or_404(user_id)
-
-    # Permission check
     if current_user.id != user.id and not (current_user.role == 'admin' or current_user.can_view_all_records):
         flash('You do not have permission to view these records', 'danger')
         return redirect(url_for('profile', user_id=current_user.id))
-
     files = RecordFile.query.filter_by(user_id=user_id).order_by(RecordFile.uploaded_at.desc()).all()
     return render_template('records_user.html', user=user, files=files)
 
@@ -670,45 +655,20 @@ def poi_delete(poi_id):
     flash('POI deleted', 'success')
     return redirect(url_for('poi_list'))
 
-# ===== PDF EXPORT ROUTES (NEW) =====
+# ===== PDF EXPORT =====
 @app.route('/poi/<int:poi_id>/export-pdf')
 @login_required
 def poi_export_pdf(poi_id):
     poi = PersonOfInterest.query.get_or_404(poi_id)
-    
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter,
-                            rightMargin=40, leftMargin=40,
-                            topMargin=40, bottomMargin=40)
-    
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        'TitleStyle',
-        parent=styles['Heading1'],
-        fontSize=16,
-        spaceAfter=12,
-        textColor='#111111'
-    )
-    label_style = ParagraphStyle(
-        'LabelStyle',
-        parent=styles['Normal'],
-        fontSize=10,
-        textColor='#333333',
-        spaceAfter=2
-    )
-    normal_style = ParagraphStyle(
-        'NormalStyle',
-        parent=styles['Normal'],
-        fontSize=10,
-        leading=14,
-        spaceAfter=8
-    )
-    
+    title_style = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontSize=16, spaceAfter=12, textColor='#111111')
+    label_style = ParagraphStyle('LabelStyle', parent=styles['Normal'], fontSize=10, textColor='#333333', spaceAfter=2)
+    normal_style = ParagraphStyle('NormalStyle', parent=styles['Normal'], fontSize=10, leading=14, spaceAfter=8)
     elements = []
-    
     elements.append(Paragraph(f"Person of Interest: {poi.name}", title_style))
     elements.append(Spacer(1, 8))
-    
     if poi.photo_filename:
         photo_path = os.path.join(app.config['UPLOAD_FOLDER'], poi.photo_filename)
         if os.path.exists(photo_path):
@@ -718,20 +678,14 @@ def poi_export_pdf(poi_id):
                 elements.append(Spacer(1, 10))
             except:
                 pass
-    
     elements.append(Paragraph(f"<b>Classification:</b> {poi.classification.upper()}", normal_style))
-    
     if poi.aliases:
         elements.append(Paragraph(f"<b>Aliases:</b> {poi.aliases}", normal_style))
-    
     if poi.last_seen:
         elements.append(Paragraph(f"<b>Last Seen:</b> {poi.last_seen.strftime('%Y-%m-%d')}", normal_style))
-    
     elements.append(Spacer(1, 6))
-    
     elements.append(Paragraph("<b>Description / Appearance</b>", label_style))
     elements.append(Paragraph(poi.description or "—", normal_style))
-    
     if poi.license_plate or poi.vehicle_color or poi.vehicle_make_model:
         elements.append(Paragraph("<b>Vehicle Information</b>", label_style))
         vehicle_text = []
@@ -742,45 +696,33 @@ def poi_export_pdf(poi_id):
         if poi.license_plate:
             vehicle_text.append(f"Plate: {poi.license_plate}")
         elements.append(Paragraph(" | ".join(vehicle_text), normal_style))
-    
     if poi.notes:
         elements.append(Paragraph("<b>Internal Notes</b>", label_style))
         elements.append(Paragraph(poi.notes, normal_style))
-    
     elements.append(Spacer(1, 12))
-    elements.append(Paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", 
+    elements.append(Paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
                               ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor='#666666')))
-    
     doc.build(elements)
     buffer.seek(0)
-    
     filename = f"POI_{poi.name.replace(' ', '_')}.pdf"
     return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/pdf')
-
 
 @app.route('/poi/export-all-pdf')
 @login_required
 def poi_export_all_pdf():
     pois = PersonOfInterest.query.order_by(PersonOfInterest.classification.desc(), PersonOfInterest.name).all()
-    
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter,
-                            rightMargin=40, leftMargin=40,
-                            topMargin=40, bottomMargin=40)
-    
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontSize=14, spaceAfter=10)
     heading_style = ParagraphStyle('HeadingStyle', parent=styles['Heading2'], fontSize=12, spaceBefore=12, spaceAfter=6)
     normal_style = ParagraphStyle('NormalStyle', parent=styles['Normal'], fontSize=9, leading=12, spaceAfter=4)
-    
     elements = []
     elements.append(Paragraph("CNAZ Safety – Persons of Interest", title_style))
     elements.append(Paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}  |  Total: {len(pois)}", normal_style))
     elements.append(Spacer(1, 10))
-    
     for poi in pois:
         elements.append(Paragraph(f"{poi.name}  ({poi.classification.upper()})", heading_style))
-        
         if poi.photo_filename:
             photo_path = os.path.join(app.config['UPLOAD_FOLDER'], poi.photo_filename)
             if os.path.exists(photo_path):
@@ -790,27 +732,20 @@ def poi_export_all_pdf():
                     elements.append(Spacer(1, 6))
                 except:
                     pass
-        
         if poi.aliases:
             elements.append(Paragraph(f"<b>Aliases:</b> {poi.aliases}", normal_style))
-        
         elements.append(Paragraph(f"<b>Description / Appearance:</b> {poi.description or '—'}", normal_style))
-        
         if poi.license_plate or poi.vehicle_color or poi.vehicle_make_model:
             vehicle = []
             if poi.vehicle_color: vehicle.append(poi.vehicle_color)
             if poi.vehicle_make_model: vehicle.append(poi.vehicle_make_model)
             if poi.license_plate: vehicle.append(f"Plate: {poi.license_plate}")
             elements.append(Paragraph(f"<b>Vehicle:</b> {' | '.join(vehicle)}", normal_style))
-        
         if poi.notes:
             elements.append(Paragraph(f"<b>Notes:</b> {poi.notes}", normal_style))
-        
         elements.append(Spacer(1, 8))
-    
     doc.build(elements)
     buffer.seek(0)
-    
     return send_file(buffer, as_attachment=True, download_name="CNAZ_All_POIs.pdf", mimetype='application/pdf')
 
 # ==================== MESSAGE BOARD ====================
@@ -919,9 +854,48 @@ def chat():
 def chat_send():
     content = request.form.get('content', '').strip()
     if content:
-        msg = ChatMessage(content=content, author_id=current_user.id, author_name=current_user.full_name)
+        msg = ChatMessage(
+            content=content,
+            author_id=current_user.id,
+            author_name=current_user.full_name
+        )
         db.session.add(msg)
         db.session.commit()
+
+        # Send push notifications
+        try:
+            subscriptions = PushSubscription.query.filter(
+                PushSubscription.user_id != current_user.id
+            ).all()
+
+            payload = json.dumps({
+                'title': 'CNAZ Safety Chat',
+                'body': f'{current_user.full_name}: {content[:80]}',
+                'url': '/chat'
+            })
+
+            vapid_private = os.environ.get('VAPID_PRIVATE_KEY')
+            for sub in subscriptions:
+                try:
+                    webpush(
+                        subscription_info={
+                            'endpoint': sub.endpoint,
+                            'keys': {
+                                'p256dh': sub.p256dh,
+                                'auth': sub.auth
+                            }
+                        },
+                        data=payload,
+                        vapid_private_key=vapid_private,
+                        vapid_claims={'sub': 'mailto:admin@cnazsafety.local'}
+                    )
+                except WebPushException as e:
+                    if e.response and e.response.status_code in [404, 410]:
+                        db.session.delete(sub)
+                        db.session.commit()
+        except Exception as e:
+            print('Push error:', e)
+
     return redirect(url_for('chat'))
 
 @app.route('/chat/<int:msg_id>/edit', methods=['GET', 'POST'])
@@ -950,6 +924,43 @@ def chat_delete(msg_id):
     db.session.commit()
     flash('Deleted', 'success')
     return redirect(url_for('chat'))
+
+# ==================== PUSH SUBSCRIBE ====================
+@app.route('/push/subscribe', methods=['POST'])
+@login_required
+def push_subscribe():
+    data = request.get_json()
+    if not data or 'endpoint' not in data:
+        return jsonify({'success': False}), 400
+    existing = PushSubscription.query.filter_by(
+        user_id=current_user.id,
+        endpoint=data['endpoint']
+    ).first()
+    if existing:
+        db.session.delete(existing)
+    sub = PushSubscription(
+        user_id=current_user.id,
+        endpoint=data['endpoint'],
+        p256dh=data['keys']['p256dh'],
+        auth=data['keys']['auth']
+    )
+    db.session.add(sub)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/push/unsubscribe', methods=['POST'])
+@login_required
+def push_unsubscribe():
+    data = request.get_json()
+    if data and 'endpoint' in data:
+        sub = PushSubscription.query.filter_by(
+            user_id=current_user.id,
+            endpoint=data['endpoint']
+        ).first()
+        if sub:
+            db.session.delete(sub)
+            db.session.commit()
+    return jsonify({'success': True})
 
 # ==================== INIT ====================
 with app.app_context():
