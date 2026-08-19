@@ -1,44 +1,63 @@
-<div class="col-md-4">
-    <div class="card h-100">
-        <div class="card-header" style="background-color: #c6f36b; color: #000;">
-            <i class="bi bi-calendar-event"></i> Upcoming Schedule
-        </div>
-        <div class="card-body">
-            {% if upcoming %}
-                {% for e in upcoming %}
-                    <a href="{{ url_for('schedule_detail', event_id=e.id) }}" class="text-decoration-none d-block mb-3">
-                        <div class="fw-bold" style="color: #c6f36b;">
-                            {{ e.event_date.strftime('%a, %b %d') }} · {{ e.title }}
-                            {% if e.start_time %} · {{ e.start_time }}{% endif %}
-                        </div>
-                        {% if e.signups %}
-                            {% for s in e.signups %}
-                                <div class="small d-flex align-items-center" style="color: #ddd;">
-                                    {% set person = users_by_name.get(s.person_name) %}
-                                    {% if person and person.profile_photo %}
-                                        <img src="{{ url_for('static', filename='uploads/' + person.profile_photo) }}"
-                                             class="rounded-circle me-1"
-                                             style="width:18px;height:18px;object-fit:cover;">
-                                    {% else %}
-                                        <span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center me-1"
-                                              style="width:18px;height:18px;font-size:10px;">
-                                            {{ s.person_name[0] if s.person_name else '?' }}
-                                        </span>
-                                    {% endif %}
-                                    {{ s.person_name }}
-                                    {% if s.role %} – {{ s.role }}{% endif %}
-                                    {% if s.service %} ({{ s.service }}){% endif %}
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="small text-muted">No one signed up yet</div>
-                        {% endif %}
-                    </a>
+{% extends "base.html" %}
+{% block title %}Dashboard - CNAZ Safety{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="mb-0"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+</div>
+
+<form class="mb-4" method="GET" action="{{ url_for('dashboard') }}">
+    <div class="input-group">
+        <input type="text" name="q" class="form-control" placeholder="Search..." value="{{ q or '' }}">
+        <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
+        {% if q %}
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Clear</a>
+        {% endif %}
+    </div>
+</form>
+
+{% if q %}
+<div class="card mb-4">
+    <div class="card-header" style="background-color: #c6f36b; color: #000;">
+        Search results for "{{ q }}"
+    </div>
+    <div class="card-body">
+        {% if search_pois or search_msgs %}
+            {% if search_pois %}
+            <h6 class="text-muted">Persons of Interest</h6>
+            <ul class="list-group list-group-flush mb-3">
+                {% for p in search_pois %}
+                <li class="list-group-item px-0">
+                    <a href="{{ url_for('poi_detail', poi_id=p.id) }}">{{ p.name }}</a>
+                    <span class="badge classification-{{ p.classification }}">{{ p.classification|upper }}</span>
+                </li>
                 {% endfor %}
-            {% else %}
-                <p class="text-muted mb-0">No upcoming events</p>
+            </ul>
             {% endif %}
-            <a href="{{ url_for('schedule') }}" class="btn btn-sm btn-outline-success mt-2">View Calendar</a>
-        </div>
+            {% if search_msgs %}
+            <h6 class="text-muted">Resource Center</h6>
+            <ul class="list-group list-group-flush">
+                {% for m in search_msgs %}
+                <li class="list-group-item px-0">
+                    <a href="{{ url_for('message_detail', msg_id=m.id) }}">{{ m.title }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        {% else %}
+            <p class="text-muted mb-0">No results found.</p>
+        {% endif %}
     </div>
 </div>
+{% endif %}
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header" style="background-color: #c6f36b; color: #000;">
+                <i class="bi bi-chat-dots"></i> Group Chat
+            </div>
+            <div class="card-body">
+                {% if recent_chats %}
+                    <ul class="list-group list-group-flush">
+                    {% for m in recent_chats %}
+                        <li
