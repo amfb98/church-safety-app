@@ -3,7 +3,12 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="mb-0"><i class="bi bi-chat-dots"></i> Group Chat</h2>
-    <span class="text-muted small">Updates automatically</span>
+    <div>
+        <button id="enable-notifications" class="btn btn-sm btn-outline-success" style="display:none;">
+            <i class="bi bi-bell"></i> Enable Notifications
+        </button>
+        <span class="text-muted small ms-2">Updates automatically</span>
+    </div>
 </div>
 
 <div id="chat-box" class="card mb-3" style="height: 55vh; overflow-y: auto;">
@@ -55,4 +60,59 @@
         </div>
     </div>
 </form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const VAPID_PUBLIC_KEY = "BHh4sBpvZpOl5XgRJPwzyoWT-KEo6hsqU7LLQvBQjh6vJ3laawd7Dni3mXYH498EaDmTBHLXYEu03HRwvah7-L4";
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+async function subscribeUser() {
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+
+        await fetch('/push/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(subscription)
+        });
+
+        document.getElementById('enable-notifications').style.display = 'none';
+        alert('Notifications enabled!');
+    } catch (err) {
+        console.error('Subscribe error:', err);
+        alert('Could not enable notifications. Make sure you allowed them.');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const btn = document.getElementById('enable-notifications');
+
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        return; // browser doesn't support it
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+    const existing = await registration.pushManager.getSubscription();
+
+    if (!existing) {
+        btn.style.display = 'inline-block';
+        btn.addEventListener('click', subscribeUser);
+    }
+});
+</script>
 {% endblock %}
