@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Bulletin Board{% endblock %}
+{% block title %}Resource Center{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-chat-left-text"></i> Bulletin Board</h2>
-    <a href="{{ url_for('message_add') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> New Post</a>
+    <h2><i class="bi bi-folder2-open"></i> Resource Center</h2>
+    <a href="{{ url_for('message_add') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> New Resource</a>
 </div>
 
 {% for msg in messages %}
@@ -25,6 +25,6 @@
     </div>
 </div>
 {% else %}
-<div class="alert alert-info">No messages yet.</div>
+<div class="alert alert-info">No resources yet.</div>
 {% endfor %}
 {% endblock %}
