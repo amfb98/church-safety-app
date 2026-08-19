@@ -64,7 +64,7 @@
 
 {% block scripts %}
 <script>
-const VAPID_PUBLIC_KEY = "BHh4sBpvZpOl5XgRJPwzyoWT-KEo6hsqU7LLQvBQjh6vJ3laawd7Dni3mXYH498EaDmTBHLXYEu03HRwvah7-L4";
+const VAPID_PUBLIC_KEY = "BHHitUVXssszcA2SfmiUAVKOBkZ-IyfUKRZe-QBNLyq9AThtvorBFEdFZD_jjW2M9waZunnq3PWh9FXc7QKsxDw";
 
 function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -95,14 +95,16 @@ async function subscribeUser() {
         alert('Notifications enabled!');
     } catch (err) {
         console.error('Subscribe error:', err);
-        alert('Could not enable notifications. Make sure you allowed them.');
+        alert('Could not enable notifications: ' + err.message);
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('enable-notifications');
-    btn.style.display = 'inline-block';
-    btn.addEventListener('click', subscribeUser);
+    if (btn) {
+        btn.style.display = 'inline-block';
+        btn.addEventListener('click', subscribeUser);
+    }
 });
 </script>
 {% endblock %}
