@@ -25,7 +25,7 @@
     {% for week in weeks %}
         <tr>
         {% for day in week %}
-            <td class="calendar-day {% if day == 0 %}empty{% endif %}" style="height:155px; vertical-align:top; min-width:125px;">
+            <td class="calendar-day {% if day == 0 %}empty{% endif %}" style="height:110px; vertical-align:top; min-width:110px;">
                 {% if day != 0 %}
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <strong>{{ day }}</strong>
@@ -34,27 +34,20 @@
                 </div>
                 {% if events_by_day.get(day) %}
                     {% for e in events_by_day[day] %}
-                    <div class="event-pill mb-1" style="padding: 6px 8px; background-color: #c6f36b; border-radius: 6px;">
+                    <div class="event-pill mb-1" style="padding: 5px 7px; background-color: #c6f36b; border-radius: 6px;">
                         <a href="{{ url_for('schedule_detail', event_id=e.id) }}"
-                           style="color: #000; font-weight: 700; text-decoration: none; display: block; margin-bottom: 3px;">
+                           style="color: #000; font-weight: 700; text-decoration: none; display: block;">
                             {{ e.title }}{% if e.signups %} ({{ e.signups|length }}){% endif %}
                         </a>
-                        {% for s in e.signups %}
-                        <div style="font-size: 0.75rem; color: #111; line-height: 1.25; display:flex; align-items:center;">
-                            {% set person = users_by_name.get(s.person_name) %}
-                            {% if person and person.profile_photo %}
-                                <img src="{{ url_for('static', filename='uploads/' + person.profile_photo) }}"
-                                     class="rounded-circle me-1"
-                                     style="width:18px;height:18px;object-fit:cover;">
-                            {% else %}
-                                <span class="rounded-circle bg-dark text-white d-inline-flex align-items-center justify-content-center me-1"
-                                      style="width:18px;height:18px;font-size:10px;">
-                                    {{ s.person_name[0] if s.person_name else '?' }}
-                                </span>
-                            {% endif %}
-                            {{ s.person_name }}{% if s.role %} – {{ s.role }}{% endif %}{% if s.service %} ({{ s.service }}){% endif %}
+
+                        <!-- Names only show on desktop -->
+                        <div class="signup-names d-none d-md-block">
+                            {% for s in e.signups %}
+                            <div style="font-size: 0.72rem; color: #111; line-height: 1.25; margin-top: 2px;">
+                                {{ s.person_name }}{% if s.role %} – {{ s.role }}{% endif %}{% if s.service %} ({{ s.service }}){% endif %}
+                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
                     </div>
                     {% endfor %}
                 {% endif %}
@@ -68,10 +61,15 @@
 </div>
 
 <style>
-@media (max-width: 768px) {
-    .calendar-day { min-width: 105px !important; }
-    .event-pill { font-size: 0.82rem; }
-    .event-pill div { font-size: 0.72rem !important; white-space: normal; word-break: break-word; }
+@media (max-width: 767px) {
+    .calendar-day { 
+        min-width: 95px !important; 
+        height: 90px !important;
+    }
+    .event-pill { 
+        font-size: 0.78rem; 
+        padding: 4px 6px !important;
+    }
 }
 </style>
 {% endblock %}
