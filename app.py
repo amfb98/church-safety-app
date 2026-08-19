@@ -83,6 +83,10 @@ class ShiftSignUp(db.Model):
     service = db.Column(db.String(20))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class CancelledSunday(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    event_date = db.Column(db.Date, unique=True, nullable=False)
+
 class PersonOfInterest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
@@ -161,7 +165,8 @@ def ensure_upcoming_sundays(weeks_ahead=52):
             ScheduleEvent.event_date == sunday,
             ScheduleEvent.title == 'Church Service'
         ).first()
-        if not exists:
+        cancelled = CancelledSunday.query.filter_by(event_date=sunday).first()
+        if not exists and not cancelled:
             event = ScheduleEvent(
                 title='Church Service',
                 event_date=sunday,
@@ -416,6 +421,13 @@ def schedule_signup_delete(signup_id):
 @login_required
 def schedule_delete(event_id):
     event = ScheduleEvent.query.get_or_404(event_id)
+
+    # If this is an auto Church Service, remember the date so it doesn't come back
+    if event.is_auto and event.title == 'Church Service':
+        already = CancelledSunday.query.filter_by(event_date=event.event_date).first()
+        if not already:
+            db.session.add(CancelledSunday(event_date=event.event_date))
+
     db.session.delete(event)
     db.session.commit()
     flash('Event deleted', 'success')
