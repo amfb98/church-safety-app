@@ -78,24 +78,65 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 async function subscribeUser() {
+    const btn = document.getElementById('enable-notifications');
+
+    // 1. Must be running as installed PWA
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (!isStandalone) {
+        alert('You must open this app from the Home Screen icon (not from a Safari tab).');
+        return;
+    }
+
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+        alert('Push notifications are not supported on this device/browser.');
+        return;
+    }
+
     try {
+        // 2. Wait for Service Worker
         const registration = await navigator.serviceWorker.ready;
+
+        // 3. Check if Service Worker is actually controlling the page
+        if (!navigator.serviceWorker.controller) {
+            alert('Service Worker is not controlling this page yet.\n\nPlease fully close the app (swipe it away from the app switcher), open it again from the Home Screen, then try Enable Notifications again.');
+            return;
+        }
+
+        // 4. Explicitly request permission first (this is the step that should show the Apple prompt)
+        let permission = Notification.permission;
+
+        if (permission === 'default') {
+            permission = await Notification.requestPermission();
+        }
+
+        if (permission !== 'granted') {
+            alert('Permission was not granted.\n\nCurrent status: ' + permission + '\n\nIf it says "denied", go to iPhone Settings → Notifications and look for the site, or delete the Home Screen icon and re-add it.');
+            return;
+        }
+
+        // 5. Subscribe
         const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
         });
 
-        await fetch('/push/subscribe', {
+        // 6. Save to server
+        const res = await fetch('/push/subscribe', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(subscription)
         });
 
-        document.getElementById('enable-notifications').style.display = 'none';
-        alert('Notifications enabled!');
+        if (!res.ok) {
+            throw new Error('Server returned ' + res.status);
+        }
+
+        btn.style.display = 'none';
+        alert('Notifications enabled successfully!');
+
     } catch (err) {
         console.error('Subscribe error:', err);
-        alert('Could not enable notifications: ' + err.message);
+        alert('Failed: ' + (err.message || err));
     }
 }
 
